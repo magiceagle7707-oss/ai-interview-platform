@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::043083733056:role/role-my-project
+          role-to-assume: arn:aws:iam::929677646442:role/role-ai-interview-platform 
           role-session-name: gh-oidc-test
           aws-region: ${{ env.AWS_REGION }}
 
