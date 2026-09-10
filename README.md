@@ -36,7 +36,6 @@ Established keyless authentication from GitHub Actions to AWS using OpenID Conne
 - Updated role trust relationship with above values.
 - Updated workflow `role-to-assume` to new role ARN and re-pushed. Role assumption verified.
 
-> Note: Sensitive values (AWS account IDs, role ARNs, GitHub IDs) are intentionally omitted. Use placeholders.
 
 ## Day 2 — Terraform VPC for EKS (Plan, Apply, Destroy)
 
@@ -73,4 +72,3 @@ Built and validated VPC foundation for future EKS cluster in `ap-south-1`.
 - Verified: `describe-vpcs` -> `[]`, `describe-subnets` -> `[]`, `describe-addresses` -> `[]`, `describe-nat-gateways` -> `State: deleted`.
 - `terraform state list` empty. No NAT/EIP charges remain.
 
-> Note: Sensitive values (AWS account IDs, role ARNs, access keys) are intentionally omitted. Use placeholders.
