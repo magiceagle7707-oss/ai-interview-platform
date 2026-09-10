@@ -12,3 +12,5 @@ Terraform/override.tf.json
 Terraform/*_override.tf
 Terraform/*_override.tf.json
 Terraform/file.txt
+Terraform/tfplan
+Terraform/*.plan

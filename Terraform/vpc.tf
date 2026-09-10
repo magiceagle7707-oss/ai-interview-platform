@@ -1,6 +1,8 @@
 resource "aws_vpc" "my-vpc" {
-  cidr_block       = var.vpc_cidr
-  instance_tenancy = "default"
+  cidr_block           = var.vpc_cidr
+  instance_tenancy     = "default"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
   tags = {
     Name        = var.vpc_name
@@ -20,9 +22,10 @@ resource "aws_vpc" "my-vpc" {
 }
 
 resource "aws_subnet" "Pub-Subnet" {
-  vpc_id            = aws_vpc.my-vpc.id
-  cidr_block        = var.pub_subnet_cidr
-  availability_zone = "ap-south-1b"
+  vpc_id                  = aws_vpc.my-vpc.id
+  cidr_block              = var.pub_subnet_cidr
+  availability_zone       = "ap-south-1b"
+  map_public_ip_on_launch = true
 
   tags = {
     Name        = var.public_subnet_name
@@ -42,9 +45,10 @@ resource "aws_subnet" "Pub-Subnet" {
 }
 
 resource "aws_subnet" "Pub-Subnet-2" {
-  vpc_id            = aws_vpc.my-vpc.id
-  cidr_block        = var.pub_subnet_cidr_2
-  availability_zone = "ap-south-1a"
+  vpc_id                  = aws_vpc.my-vpc.id
+  cidr_block              = var.pub_subnet_cidr_2
+  availability_zone       = "ap-south-1a"
+  map_public_ip_on_launch = true
 
   tags = {
     Name        = var.public_subnet_name
@@ -104,7 +108,10 @@ resource "aws_route_table" "Pub-Route-Table" {
   }
 
   tags = {
-    Name = "App-Route-Table"
+    Name        = "App-Route-Table"
+    Environment = var.environment
+    Project     = var.project
+    created_by  = var.created_by
   }
 }
 
@@ -117,7 +124,10 @@ resource "aws_route_table" "Pvt-Route-Table" {
   }
 
   tags = {
-    Name = "DB-Route-Table"
+    Name        = "DB-Route-Table"
+    Environment = var.environment
+    Project     = var.project
+    created_by  = var.created_by
   }
 }
 
@@ -145,13 +155,23 @@ resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.my-vpc.id
 
   tags = {
-    Name = "main"
+    Name        = "main"
+    Environment = var.environment
+    Project     = var.project
+    created_by  = var.created_by
   }
 }
 
 resource "aws_eip" "lb" {
   # instance = aws_instance.web.id
   domain = "vpc"
+
+  tags = {
+    Name        = "nat-eip"
+    Environment = var.environment
+    Project     = var.project
+    created_by  = var.created_by
+  }
 }
 
 resource "aws_nat_gateway" "ram" {
@@ -159,7 +179,10 @@ resource "aws_nat_gateway" "ram" {
   subnet_id     = aws_subnet.Pub-Subnet.id
 
   tags = {
-    Name = "gw NAT"
+    Name        = "gw NAT"
+    Environment = var.environment
+    Project     = var.project
+    created_by  = var.created_by
   }
 
   # To ensure proper ordering, it is recommended to add an explicit dependency
