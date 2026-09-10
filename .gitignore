@@ -1,1 +1,14 @@
 Progress/
+# Terraform - never commit provider binaries or state
+Terraform/.terraform/
+Terraform/*.tfstate
+Terraform/*.tfstate.*
+Terraform/*.tfvars
+!Terraform/.terraform.lock.hcl
+Terraform/crash.log
+Terraform/crash.*.log
+Terraform/override.tf
+Terraform/override.tf.json
+Terraform/*_override.tf
+Terraform/*_override.tf.json
+Terraform/file.txt
