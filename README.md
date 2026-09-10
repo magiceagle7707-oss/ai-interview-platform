@@ -37,3 +37,40 @@ Established keyless authentication from GitHub Actions to AWS using OpenID Conne
 - Updated workflow `role-to-assume` to new role ARN and re-pushed. Role assumption verified.
 
 > Note: Sensitive values (AWS account IDs, role ARNs, GitHub IDs) are intentionally omitted. Use placeholders.
+
+## Day 2 — Terraform VPC for EKS (Plan, Apply, Destroy)
+
+Built and validated VPC foundation for future EKS cluster in `ap-south-1`.
+
+### 1. Terraform Structure
+- Reviewed `Terraform/vpc.tf` (not runnable alone).
+- Created `Terraform/main.tf`: `terraform` block, `aws ~> 5.0`, `region = var.aws_region`.
+- Created `Terraform/variables.tf`: VPC CIDR, 4x subnet CIDRs, names, `project`, `created_by`.
+- Created `Terraform/outputs.tf`: VPC, subnet, IGW, NAT, route table IDs.
+- Fixed invalid `var.pub_subnet_cidr-2` / `var.pvt_subnet_cidr-2` to `var.pub_subnet_cidr_2` / `var.pvt_subnet_cidr_2`.
+- `terraform init -backend=false` + `terraform validate` passes.
+
+### 2. IAM for Local Terraform
+- No `IAM users` existed. Created user `terraform-local` (no console).
+- Created group `terraform-vpc-admins` with `AmazonVPCFullAccess`.
+- Created access key (CLI) -> `aws configure` (`ap-south-1`) -> `aws sts get-caller-identity`.
+- Kept `role-ai-interview-platform` for GitHub OIDC; local OIDC reuse not possible without source identity.
+
+### 3. Git Hygiene
+- `.gitignore` only had `Progress/`. Added `Terraform/.terraform/`, `*.tfstate*`, `*.tfvars`, `tfplan`, `*.plan`, `file.txt`. Kept `.terraform.lock.hcl`.
+- First push rejected: `terraform-provider-aws_v5.100.0_x5.exe` (628 MB) exceeds GitHub 100 MB limit.
+- Fixed via `git rm -r --cached Terraform/.terraform`, `git commit --amend`, `git push origin main`.
+
+### 4. Plan / Harden / Apply
+- `terraform plan -out=tfplan`: 14 to add (1x `aws_vpc`, 4x `aws_subnet`, 1x `aws_internet_gateway`, 1x `aws_eip`, 1x `aws_nat_gateway`, 2x `aws_route_table`, 4x `aws_route_table_association`).
+- Added `enable_dns_support` + `enable_dns_hostnames = true` to `aws_vpc.my-vpc`.
+- Added `map_public_ip_on_launch = true` to public subnets.
+- Added `Environment/Project/created_by` to route tables, IGW, EIP (`nat-eip`), NAT.
+- Partial `apply` failed on `aws_eip.lb`: `UnauthorizedOperation` for `ec2:DescribeAddressesAttribute` (missing from `AmazonVPCFullAccess` with provider `5.100.0`). Added inline policy for `ec2:DescribeAddresses` + `ec2:DescribeAddressesAttribute`.
+
+### 5. Cost Control / Destroy
+- `terraform destroy`: 14 destroyed.
+- Verified: `describe-vpcs` -> `[]`, `describe-subnets` -> `[]`, `describe-addresses` -> `[]`, `describe-nat-gateways` -> `State: deleted`.
+- `terraform state list` empty. No NAT/EIP charges remain.
+
+> Note: Sensitive values (AWS account IDs, role ARNs, access keys) are intentionally omitted. Use placeholders.
