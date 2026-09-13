@@ -16,7 +16,7 @@ env:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest   # Runner
     steps:
       - uses: aws-actions/configure-aws-credentials@v4
         with:
