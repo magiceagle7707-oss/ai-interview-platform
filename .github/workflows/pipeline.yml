@@ -85,131 +85,131 @@ jobs:
         with:
           args: -strict -summary k8s/configmap.yaml k8s/service.yaml k8s/deployment.yaml
 
-  # deploy:
-  #   name: Deploy to EKS
-  #   needs: [app, secrets, manifests]
+  deploy:
+    name: Deploy to EKS
+    needs: [app, secrets, manifests]
 
-  #   if: >-
-  #     github.ref == 'refs/heads/main' &&
-  #     (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
-  #   runs-on: ubuntu-latest
-  #   timeout-minutes: 20
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
 
-  #   environment:
-  #     name: production
+    environment:
+      name: production
 
-  #   concurrency:
-  #     group: deploy-frontend
-  #     cancel-in-progress: false
+    concurrency:
+      group: deploy-frontend
+      cancel-in-progress: false
 
-  #   permissions:
-  #     contents: read
-  #     id-token: write
+    permissions:
+      contents: read
+      id-token: write
 
-  #   env:
-  #     SHA: ${{ github.sha }}
+    env:
+      SHA: ${{ github.sha }}
 
-  #   steps:
-  #     - name: Check config
-  #       env:
-  #         ROLE_ARN: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-  #       run: |
-  #         missing=0
-  #         for v in AWS_REGION EKS_CLUSTER K8S_NAMESPACE ECR_REPO ROLE_ARN; do
-  #           if [ -z "${!v}" ]; then
-  #             echo "::error::$v is not set"
-  #             missing=1
-  #           fi
-  #         done
-  #         [ "$missing" -eq 0 ]
+    steps:
+      - name: Check config
+        env:
+          ROLE_ARN: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+        run: |
+          missing=0
+          for v in AWS_REGION EKS_CLUSTER K8S_NAMESPACE ECR_REPO ROLE_ARN; do
+            if [ -z "${!v}" ]; then
+              echo "::error::$v is not set"
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
 
-  #     - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-  #     - name: Log in to AWS
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-  #         role-session-name: gh-deploy-frontend
-  #         aws-region: ${{ env.AWS_REGION }}
+      - name: Log in to AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          role-session-name: gh-deploy-frontend
+          aws-region: ${{ env.AWS_REGION }}
 
-  #     - name: Log in to ECR
-  #       id: ecr
-  #       uses: aws-actions/amazon-ecr-login@v2
+      - name: Log in to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-  #     - name: Build
-  #       run: docker build -t scan-target .
+      - name: Build
+        run: docker build -t scan-target .
 
-  #     - name: Scan the image
-  #       uses: aquasecurity/trivy-action@v0.36.0
-  #       with:
-  #         scan-type: image
-  #         image-ref: scan-target
-  #         severity: CRITICAL
-  #         ignore-unfixed: true
-  #         format: table
-  #         exit-code: '1'
+      - name: Scan the image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: scan-target
+          severity: CRITICAL
+          ignore-unfixed: true
+          format: table
+          exit-code: '1'
 
-  #     - name: Resolve image
-  #       env:
-  #         REGISTRY: ${{ steps.ecr.outputs.registry }}
-  #       run: echo "IMAGE=$REGISTRY/$ECR_REPO/frontend:$SHA" >> "$GITHUB_ENV"
+      - name: Resolve image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: echo "IMAGE=$REGISTRY/$ECR_REPO/frontend:$SHA" >> "$GITHUB_ENV"
 
-  #     - name: Push
-  #       run: |
-  #         docker tag scan-target "$IMAGE"
-  #         docker push "$IMAGE"
+      - name: Push
+        run: |
+          docker tag scan-target "$IMAGE"
+          docker push "$IMAGE"
 
-  #     - name: Get cluster credentials
-  #       id: creds
-  #       run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$EKS_CLUSTER"
+      - name: Get cluster credentials
+        id: creds
+        run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$EKS_CLUSTER"
 
-  #     - name: Deploy
-  #       id: deploy
-  #       run: |
-  #         grep -q IMAGE_PLACEHOLDER k8s/deployment.yaml || {
-  #           echo "::error::IMAGE_PLACEHOLDER not found in k8s/deployment.yaml - the image would never be substituted"
-  #           exit 1
-  #         }
+      - name: Deploy
+        id: deploy
+        run: |
+          grep -q IMAGE_PLACEHOLDER k8s/deployment.yaml || {
+            echo "::error::IMAGE_PLACEHOLDER not found in k8s/deployment.yaml - the image would never be substituted"
+            exit 1
+          }
 
-  #         kubectl apply -n "$K8S_NAMESPACE" -f k8s/configmap.yaml -f k8s/service.yaml
+          kubectl apply -n "$K8S_NAMESPACE" -f k8s/configmap.yaml -f k8s/service.yaml
 
-  #         sed "s|IMAGE_PLACEHOLDER|$IMAGE|" k8s/deployment.yaml | kubectl apply -n "$K8S_NAMESPACE" -f -
+          sed "s|IMAGE_PLACEHOLDER|$IMAGE|" k8s/deployment.yaml | kubectl apply -n "$K8S_NAMESPACE" -f -
 
-  #         kubectl rollout status deployment/frontend -n "$K8S_NAMESPACE" --timeout=5m
+          kubectl rollout status deployment/frontend -n "$K8S_NAMESPACE" --timeout=5m
 
-  #     - name: Verify
-  #       run: |
-  #         kubectl run "verify-fe-${SHA:0:8}-${GITHUB_RUN_ATTEMPT}" \
-  #           --rm --attach --restart=Never -q \
-  #           -n "$K8S_NAMESPACE" --image=curlimages/curl:8.11.1 -- \
-  #           -fsS --max-time 10 http://frontend/ -o /dev/null
+      - name: Verify
+        run: |
+          kubectl run "verify-fe-${SHA:0:8}-${GITHUB_RUN_ATTEMPT}" \
+            --rm --attach --restart=Never -q \
+            -n "$K8S_NAMESPACE" --image=curlimages/curl:8.11.1 -- \
+            -fsS --max-time 10 http://frontend/ -o /dev/null
 
-  #     - name: Roll back
-  #       if: failure() && (steps.deploy.outcome == 'success' || steps.deploy.outcome == 'failure')
-  #       run: |
-  #         echo "::error::Deploy or verification failed - rolling back"
-  #         kubectl rollout undo deployment/frontend -n "$K8S_NAMESPACE" || true
-  #         kubectl rollout status deployment/frontend -n "$K8S_NAMESPACE" --timeout=3m || true
-  #         kubectl get pods -n "$K8S_NAMESPACE" -l app=frontend
-  #         kubectl describe pods -n "$K8S_NAMESPACE" -l app=frontend | tail -30
+      - name: Roll back
+        if: failure() && (steps.deploy.outcome == 'success' || steps.deploy.outcome == 'failure')
+        run: |
+          echo "::error::Deploy or verification failed - rolling back"
+          kubectl rollout undo deployment/frontend -n "$K8S_NAMESPACE" || true
+          kubectl rollout status deployment/frontend -n "$K8S_NAMESPACE" --timeout=3m || true
+          kubectl get pods -n "$K8S_NAMESPACE" -l app=frontend
+          kubectl describe pods -n "$K8S_NAMESPACE" -l app=frontend | tail -30
 
-  #     - name: Show what is running
-  #       if: always() && steps.creds.outcome == 'success'
-  #       run: |
-  #         kubectl get pods -n "$K8S_NAMESPACE" -l app=frontend
-  #         kubectl get deploy frontend -n "$K8S_NAMESPACE" -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
+      - name: Show what is running
+        if: always() && steps.creds.outcome == 'success'
+        run: |
+          kubectl get pods -n "$K8S_NAMESPACE" -l app=frontend
+          kubectl get deploy frontend -n "$K8S_NAMESPACE" -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
 
-  #     - name: Summary
-  #       if: always()
-  #       run: |
-  #         {
-  #           echo "### Deploy ${{ job.status }}"
-  #           echo ""
-  #           echo "| | |"
-  #           echo "|---|---|"
-  #           echo "| Commit | \`$SHA\` |"
-  #           echo "| Image | \`${IMAGE:-not built}\` |"
-  #           echo "| Cluster | \`$EKS_CLUSTER\` (\`$AWS_REGION\`) |"
-  #           echo "| Namespace | \`$K8S_NAMESPACE\` |"
-  #         } >> "$GITHUB_STEP_SUMMARY"
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Deploy ${{ job.status }}"
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Commit | \`$SHA\` |"
+            echo "| Image | \`${IMAGE:-not built}\` |"
+            echo "| Cluster | \`$EKS_CLUSTER\` (\`$AWS_REGION\`) |"
+            echo "| Namespace | \`$K8S_NAMESPACE\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
