@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  selector:
+    app: frontend
+  ports:
+    # The Service listens on 80; the container listens on 3000. targetPort
+    # names the container port rather than repeating the number, so changing
+    # the container port is one edit in deployment.yaml.
+    - name: http
+      port: 80
+      targetPort: http

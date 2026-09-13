@@ -1,41 +1,215 @@
-name: OIDC Test
+name: CI/CD Pipeline
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-frontend-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
-  id-token: write
   contents: read
 
 env:
-   AWS_REGION: ap-south-1       
-   CLUSTER: ai-interview-platform-eks
-   NS: default
+  AWS_REGION: ap-south-1
+  EKS_CLUSTER: ai-interview-platform-eks
+  K8S_NAMESPACE: default
+  ECR_REPO: ai-interview-dev-platform
 
 jobs:
-  verify:
-    runs-on: ubuntu-latest   # Runner
+  app:
+    name: React app
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     steps:
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: actions/checkout@v4
         with:
-          role-to-assume: arn:aws:iam::929677646442:role/role-ai-interview-platform 
-          role-session-name: gh-oidc-test
-          aws-region: ${{ env.AWS_REGION }}
+          fetch-depth: 0
 
-      - name: Who am I
-        run: aws sts get-caller-identity
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
 
-      - name: Setup kubeconfig
-        run: |
-          mkdir -p ~/.kube
-          aws eks update-kubeconfig --name "$CLUSTER" --region "$AWS_REGION"
+      - name: Install
+        run: npm ci
 
-      - name: What am I allowed to do
-        run: |
-          kubectl auth whoami                    
-          kubectl auth can-i --list -n "$NS"
+      - name: Lint
+        run: npm run lint
 
-      - name: Allowed - should pass
-        run: kubectl get pods -n "$NS"
+      - name: Test
+        run: npm run test:coverage
+
+      - name: Build
+        run: npm run build
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v8.2.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+
+  secrets:
+    name: GitLeaks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  manifests:
+    name: k8s manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate against Kubernetes schemas
+        uses: docker://ghcr.io/yannh/kubeconform:v0.6.7
+        with:
+          args: -strict -summary k8s/configmap.yaml k8s/service.yaml k8s/deployment.yaml
+
+  # deploy:
+  #   name: Deploy to EKS
+  #   needs: [app, secrets, manifests]
+
+  #   if: >-
+  #     github.ref == 'refs/heads/master' &&
+  #     (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 20
+
+  #   environment:
+  #     name: production
+
+  #   concurrency:
+  #     group: deploy-frontend
+  #     cancel-in-progress: false
+
+  #   permissions:
+  #     contents: read
+  #     id-token: write
+
+  #   env:
+  #     SHA: ${{ github.sha }}
+
+  #   steps:
+  #     - name: Check config
+  #       env:
+  #         ROLE_ARN: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+  #       run: |
+  #         missing=0
+  #         for v in AWS_REGION EKS_CLUSTER K8S_NAMESPACE ECR_REPO ROLE_ARN; do
+  #           if [ -z "${!v}" ]; then
+  #             echo "::error::$v is not set"
+  #             missing=1
+  #           fi
+  #         done
+  #         [ "$missing" -eq 0 ]
+
+  #     - uses: actions/checkout@v4
+
+  #     - name: Log in to AWS
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+  #         role-session-name: gh-deploy-frontend
+  #         aws-region: ${{ env.AWS_REGION }}
+
+  #     - name: Log in to ECR
+  #       id: ecr
+  #       uses: aws-actions/amazon-ecr-login@v2
+
+  #     - name: Build
+  #       run: docker build -t scan-target .
+
+  #     - name: Scan the image
+  #       uses: aquasecurity/trivy-action@v0.36.0
+  #       with:
+  #         scan-type: image
+  #         image-ref: scan-target
+  #         severity: CRITICAL
+  #         ignore-unfixed: true
+  #         format: table
+  #         exit-code: '1'
+
+  #     - name: Resolve image
+  #       env:
+  #         REGISTRY: ${{ steps.ecr.outputs.registry }}
+  #       run: echo "IMAGE=$REGISTRY/$ECR_REPO/frontend:$SHA" >> "$GITHUB_ENV"
+
+  #     - name: Push
+  #       run: |
+  #         docker tag scan-target "$IMAGE"
+  #         docker push "$IMAGE"
+
+  #     - name: Get cluster credentials
+  #       id: creds
+  #       run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$EKS_CLUSTER"
+
+  #     - name: Deploy
+  #       id: deploy
+  #       run: |
+  #         grep -q IMAGE_PLACEHOLDER k8s/deployment.yaml || {
+  #           echo "::error::IMAGE_PLACEHOLDER not found in k8s/deployment.yaml - the image would never be substituted"
+  #           exit 1
+  #         }
+
+  #         kubectl apply -n "$K8S_NAMESPACE" -f k8s/configmap.yaml -f k8s/service.yaml
+
+  #         sed "s|IMAGE_PLACEHOLDER|$IMAGE|" k8s/deployment.yaml | kubectl apply -n "$K8S_NAMESPACE" -f -
+
+  #         kubectl rollout status deployment/frontend -n "$K8S_NAMESPACE" --timeout=5m
+
+  #     - name: Verify
+  #       run: |
+  #         kubectl run "verify-fe-${SHA:0:8}-${GITHUB_RUN_ATTEMPT}" \
+  #           --rm --attach --restart=Never -q \
+  #           -n "$K8S_NAMESPACE" --image=curlimages/curl:8.11.1 -- \
+  #           -fsS --max-time 10 http://frontend/ -o /dev/null
+
+  #     - name: Roll back
+  #       if: failure() && (steps.deploy.outcome == 'success' || steps.deploy.outcome == 'failure')
+  #       run: |
+  #         echo "::error::Deploy or verification failed - rolling back"
+  #         kubectl rollout undo deployment/frontend -n "$K8S_NAMESPACE" || true
+  #         kubectl rollout status deployment/frontend -n "$K8S_NAMESPACE" --timeout=3m || true
+  #         kubectl get pods -n "$K8S_NAMESPACE" -l app=frontend
+  #         kubectl describe pods -n "$K8S_NAMESPACE" -l app=frontend | tail -30
+
+  #     - name: Show what is running
+  #       if: always() && steps.creds.outcome == 'success'
+  #       run: |
+  #         kubectl get pods -n "$K8S_NAMESPACE" -l app=frontend
+  #         kubectl get deploy frontend -n "$K8S_NAMESPACE" -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
+
+  #     - name: Summary
+  #       if: always()
+  #       run: |
+  #         {
+  #           echo "### Deploy ${{ job.status }}"
+  #           echo ""
+  #           echo "| | |"
+  #           echo "|---|---|"
+  #           echo "| Commit | \`$SHA\` |"
+  #           echo "| Image | \`${IMAGE:-not built}\` |"
+  #           echo "| Cluster | \`$EKS_CLUSTER\` (\`$AWS_REGION\`) |"
+  #           echo "| Namespace | \`$K8S_NAMESPACE\` |"
+  #         } >> "$GITHUB_STEP_SUMMARY"

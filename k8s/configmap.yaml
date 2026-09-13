@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+data:
+  # Where the browser sends /api requests. Empty means same-origin.
+  #
+  # Nothing routes /api yet in phase 1, so nginx answers it with the SPA
+  # fallback: index.html, HTTP 200. Login will fail with "the server returned
+  # a web page instead of data". That is the expected result, not a bug.
+  API_BASE_URL: ""
+
+  # `prod` hides the seed-account shortcuts on the login screen.
+  APP_ENV: "dev"

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: frontend
+
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          # Replaced at deploy time:
+          #   sed "s|IMAGE_PLACEHOLDER|$IMAGE|" k8s/deployment.yaml | kubectl apply -f -
+          #
+          # If the sed does not match, this string is applied literally and the
+          # pod sits in ImagePullBackOff. Nothing here refuses to render on a
+          # missing tag the way a Helm `required` would.
+          image: IMAGE_PLACEHOLDER
+
+          ports:
+            # Named, so the Service and both probes refer to it by name.
+            - name: http
+              containerPort: 3000
+
+          # Every key in the ConfigMap becomes an environment variable, which
+          # docker-entrypoint.sh renders into runtime-config.js at start.
+          #
+          # Editing the ConfigMap alone does NOT restart this pod - the
+          # Deployment has not changed, so Kubernetes leaves it running with the
+          # old values. Try it and watch nothing happen.
+          envFrom:
+            - configMapRef:
+                name: frontend-config
+
+          # Is the container alive? If not, restart it.
+          # /healthz, not /, because it answers without touching the filesystem
+          # and is excluded from the access log.
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+
+          # Is it ready for traffic? If not, keep it out of the Service.
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              memory: 192Mi
