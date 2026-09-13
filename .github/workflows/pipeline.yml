@@ -1,4 +1,4 @@
-name: OI,DC Test
+name: OIDC Test
 
 on:
   workflow_dispatch:
@@ -11,8 +11,8 @@ permissions:
 
 env:
    AWS_REGION: ap-south-1       
-#    CLUSTER: my-proj
-#    NS: default
+   CLUSTER: ai-interview-platform-eks
+   NS: default
 
 jobs:
   verify:
@@ -24,18 +24,18 @@ jobs:
           role-session-name: gh-oidc-test
           aws-region: ${{ env.AWS_REGION }}
 
-    #   - name: Who am I
-    #     run: aws sts get-caller-identity
+      - name: Who am I
+        run: aws sts get-caller-identity
 
-    #   - name: Setup kubeconfig
-    #     run: |
-    #       mkdir -p ~/.kube
-    #       aws eks update-kubeconfig --name "$CLUSTER" --region "$AWS_REGION"
+      - name: Setup kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          aws eks update-kubeconfig --name "$CLUSTER" --region "$AWS_REGION"
 
-    #   - name: What am I allowed to do
-    #     run: |
-    #       kubectl auth whoami                    # k8s ku enna identity-a theriyum
-    #       kubectl auth can-i --list -n "$NS"
+      - name: What am I allowed to do
+        run: |
+          kubectl auth whoami                    
+          kubectl auth can-i --list -n "$NS"
 
-    #   - name: Allowed - should pass
-    #     run: kubectl get pods -n "$NS"
+      - name: Allowed - should pass
+        run: kubectl get pods -n "$NS"
