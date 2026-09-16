@@ -1,0 +1,2716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zero to Live — The Complete Runbook</title>
+<style>
+  /* ============================================================
+     Tokens — light is the base; dark is a genuine second theme.
+     ============================================================ */
+  :root {
+    --f-head: "Bahnschrift", "DIN Alternate", "Avenir Next Condensed", "Segoe UI", system-ui, sans-serif;
+    --f-body: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --f-mono: "Cascadia Mono", "Consolas", ui-monospace, "SF Mono", "Roboto Mono", monospace;
+
+    --ground: #F1F3F1;
+    --surface: #FFFFFF;
+    --surface-2: #E7EAE8;
+    --ink: #131819;
+    --ink-2: #414B4D;
+    --ink-3: #6D7A7B;
+    --rule: #D2D8D5;
+    --accent: #0A6C74;
+    --accent-soft: #DCECEB;
+    --warn: #9C5216;
+    --warn-soft: #F4E7DA;
+    --danger: #A32B25;
+    --danger-soft: #F6E2E0;
+    --ok: #23684A;
+    --ok-soft: #DCEDE3;
+
+    /* Schematic plates look identical in both themes — that is the point. */
+    --plate-bg: #0C1518;
+    --plate-line: #33484D;
+    --plate-fill: #132126;
+    --plate-ink: #E4EEED;
+    --plate-dim: #90A6A8;
+    --plate-accent: #4FD1C5;
+    --plate-accent-fill: #0F2A2A;
+    --plate-danger: #E58179;
+    --plate-danger-fill: #2A1615;
+    --plate-warn: #E0A45C;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E1416;
+      --surface: #151D1F;
+      --surface-2: #1D272A;
+      --ink: #E6EDEC;
+      --ink-2: #A9B7B7;
+      --ink-3: #7C8C8C;
+      --rule: #2A3639;
+      --accent: #4FD1C5;
+      --accent-soft: #113030;
+      --warn: #E0A45C;
+      --warn-soft: #2C2118;
+      --danger: #EF8C84;
+      --danger-soft: #2E1B1A;
+      --ok: #6CC593;
+      --ok-soft: #142A20;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0E1416;
+    --surface: #151D1F;
+    --surface-2: #1D272A;
+    --ink: #E6EDEC;
+    --ink-2: #A9B7B7;
+    --ink-3: #7C8C8C;
+    --rule: #2A3639;
+    --accent: #4FD1C5;
+    --accent-soft: #113030;
+    --warn: #E0A45C;
+    --warn-soft: #2C2118;
+    --danger: #EF8C84;
+    --danger-soft: #2E1B1A;
+    --ok: #6CC593;
+    --ok-soft: #142A20;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: 17px;
+    line-height: 1.68;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 { font-family: var(--f-head); font-weight: 600; line-height: 1.15; text-wrap: balance; margin: 0; }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  code, kbd { font-family: var(--f-mono); font-size: 0.88em; }
+  p code, li code, td code, th code, dd code {
+    background: var(--surface-2); padding: 0.12em 0.34em; border-radius: 3px; color: var(--ink);
+  }
+
+  .kicker {
+    font-family: var(--f-mono); font-size: 0.7rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+
+  /* ---------- Masthead ---------- */
+  .masthead {
+    border-bottom: 1px solid var(--rule);
+    background: linear-gradient(180deg, var(--accent-soft) 0%, transparent 70%), var(--surface);
+  }
+  .masthead-inner {
+    max-width: 1240px; margin: 0 auto; padding: 3.5rem 1.5rem 2.5rem;
+    display: flex; flex-direction: column; gap: 1.25rem;
+  }
+  .masthead h1 { font-size: clamp(2.4rem, 6vw, 4rem); letter-spacing: -0.005em; max-width: 16ch; }
+  .lede { font-size: clamp(1.05rem, 2vw, 1.25rem); color: var(--ink-2); max-width: 62ch; margin: 0; }
+  .stamp {
+    display: inline-flex; align-items: center; gap: 0.55rem; align-self: flex-start;
+    font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ok); background: var(--ok-soft); border: 1px solid currentColor;
+    border-radius: 999px; padding: 0.35rem 0.85rem;
+  }
+  .facts {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px;
+    background: var(--rule); border: 1px solid var(--rule); border-radius: 4px;
+    overflow: hidden; margin-top: 0.5rem;
+  }
+  .facts div { background: var(--surface); padding: 0.7rem 0.9rem; }
+  .facts dt {
+    font-family: var(--f-mono); font-size: 0.66rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .facts dd { margin: 0.15rem 0 0; font-family: var(--f-mono); font-size: 0.86rem; color: var(--ink); word-break: break-word; }
+
+  /* ---------- Shell ---------- */
+  .wrap {
+    max-width: 1240px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem;
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: 3rem;
+  }
+  @media (min-width: 1080px) {
+    .wrap { grid-template-columns: 15rem minmax(0, 1fr); }
+    .toc { position: sticky; top: 1.5rem; align-self: start; max-height: calc(100vh - 3rem); overflow-y: auto; }
+  }
+  .toc ol { list-style: none; margin: 0.6rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+  .toc a {
+    display: flex; gap: 0.6rem; padding: 0.28rem 0.5rem; border-radius: 3px;
+    text-decoration: none; color: var(--ink-2); font-size: 0.86rem;
+    border-left: 2px solid transparent;
+  }
+  .toc a:hover { background: var(--surface); color: var(--ink); border-left-color: var(--accent); }
+  .toc a span { font-family: var(--f-mono); font-size: 0.72rem; color: var(--ink-3); padding-top: 0.15rem; }
+
+  main { display: flex; flex-direction: column; gap: 3.5rem; min-width: 0; }
+  section { scroll-margin-top: 1.5rem; }
+  section > * + * { margin-top: 1.1rem; }
+  section h2 {
+    font-size: clamp(1.55rem, 3vw, 2.05rem);
+    padding-bottom: 0.5rem; border-bottom: 2px solid var(--ink);
+  }
+  section h3 { font-size: 1.22rem; margin-top: 2rem; }
+  section h4 { font-size: 1rem; font-family: var(--f-body); font-weight: 700; margin-top: 1.5rem; }
+  section p { max-width: 68ch; }
+  section ul, section ol { max-width: 68ch; padding-left: 1.2rem; }
+  section li + li { margin-top: 0.35rem; }
+
+  .srcref { font-family: var(--f-mono); font-size: 0.74rem; color: var(--ink-3); }
+
+  /* ---------- Plates ---------- */
+  .plate {
+    background: var(--plate-bg); border: 1px solid var(--plate-line);
+    border-radius: 4px; margin: 1.75rem 0; overflow: hidden;
+  }
+  .plate .scroll { overflow-x: auto; padding: 1.25rem; }
+  .plate svg { display: block; width: 100%; height: auto; min-width: 720px; }
+  .plate.extra-wide svg { min-width: 980px; }
+  .plate figcaption {
+    border-top: 1px solid var(--plate-line); padding: 0.7rem 1.25rem 0.85rem;
+    font-size: 0.84rem; line-height: 1.55; color: var(--plate-dim); font-family: var(--f-body);
+  }
+  .plate figcaption b { color: var(--plate-ink); font-weight: 600; }
+
+  .box { fill: var(--plate-fill); stroke: var(--plate-line); stroke-width: 1.25; }
+  .box-a { fill: var(--plate-accent-fill); stroke: var(--plate-accent); stroke-width: 1.25; }
+  .box-d { fill: var(--plate-danger-fill); stroke: var(--plate-danger); stroke-width: 1.25; }
+  .zone { fill: none; stroke: var(--plate-line); stroke-width: 1; stroke-dasharray: 3 4; }
+  .lbl { fill: var(--plate-ink); font: 600 13px var(--f-mono); }
+  .lbl-s { fill: var(--plate-ink); font: 600 11.5px var(--f-mono); }
+  .sub { fill: var(--plate-dim); font: 400 11px var(--f-mono); }
+  .zonelbl { fill: var(--plate-dim); font: 600 11px var(--f-mono); letter-spacing: 0.1em; }
+  .elab { fill: var(--plate-dim); font: 400 10.5px var(--f-mono); }
+  .elab-a { fill: var(--plate-accent); font: 400 10.5px var(--f-mono); }
+  .elab-d { fill: var(--plate-danger); font: 400 10.5px var(--f-mono); }
+  .acc { fill: var(--plate-accent); font: 600 11.5px var(--f-mono); }
+  .dng { fill: var(--plate-danger); font: 600 11.5px var(--f-mono); }
+  .wrnn { fill: var(--plate-warn); font: 600 11.5px var(--f-mono); }
+  .edge { stroke: var(--plate-line); stroke-width: 1.4; fill: none; }
+  .edge-a { stroke: var(--plate-accent); stroke-width: 1.4; fill: none; }
+  .edge-d { stroke: var(--plate-danger); stroke-width: 1.4; fill: none; stroke-dasharray: 5 4; }
+  .life { stroke: var(--plate-line); stroke-width: 1; stroke-dasharray: 4 5; }
+  .numbadge text { fill: var(--plate-bg); font: 700 12px var(--f-mono); }
+
+  /* ---------- Code ---------- */
+  pre {
+    margin: 1.25rem 0; background: var(--plate-bg); border: 1px solid var(--plate-line);
+    border-radius: 4px; padding: 1rem 1.15rem; overflow-x: auto;
+    color: var(--plate-ink); font-family: var(--f-mono); font-size: 0.82rem;
+    line-height: 1.6; tab-size: 2;
+  }
+  pre .c { color: var(--plate-dim); }
+  pre .k { color: var(--plate-accent); }
+  pre .w { color: var(--plate-warn); }
+  pre .x { color: var(--plate-danger); }
+
+  .filename {
+    font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.06em;
+    color: var(--ink-3); margin-bottom: -1rem; display: block; padding-top: 1rem;
+  }
+  .filename + pre { margin-top: 0.55rem; }
+
+  /* ---------- Callouts ---------- */
+  .note {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    padding: 0.9rem 1.1rem; border-radius: 0 4px 4px 0; margin: 1.5rem 0;
+  }
+  .note > :first-child { margin-top: 0; }
+  .note > :last-child { margin-bottom: 0; }
+  .note p { margin: 0.5rem 0 0; font-size: 0.95rem; }
+  .note .tag {
+    font-family: var(--f-mono); font-size: 0.68rem; letter-spacing: 0.13em;
+    text-transform: uppercase; color: var(--accent); display: block;
+  }
+  .note.bad { border-left-color: var(--danger); }
+  .note.bad .tag { color: var(--danger); }
+  .note.warn { border-left-color: var(--warn); }
+  .note.warn .tag { color: var(--warn); }
+  .note.good { border-left-color: var(--ok); }
+  .note.good .tag { color: var(--ok); }
+
+  /* ---------- Tables ---------- */
+  .tablewrap { overflow-x: auto; margin: 1.5rem 0; border: 1px solid var(--rule); border-radius: 4px; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--surface); font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.6rem 0.85rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-family: var(--f-mono); font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3); background: var(--surface-2); white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.mono, th.mono { font-family: var(--f-mono); font-size: 0.8rem; }
+  .tag-ok { color: var(--ok); font-weight: 600; }
+  .tag-no { color: var(--danger); font-weight: 600; }
+
+  /* ---------- Phase list ---------- */
+  .phases { list-style: none; padding: 0; margin: 1.5rem 0 0; display: flex; flex-direction: column; gap: 0; }
+  .phase {
+    display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: 1.1rem;
+    padding: 1.6rem 0; border-top: 1px solid var(--rule); max-width: none;
+  }
+  .phase:last-child { border-bottom: 1px solid var(--rule); }
+  .phase .n {
+    font-family: var(--f-mono); font-size: 1.3rem; font-weight: 700; color: var(--accent);
+    line-height: 1; padding-top: 0.15rem; font-variant-numeric: tabular-nums;
+  }
+  .phase h3 { margin: 0 0 0.15rem; font-size: 1.15rem; }
+  .phase .meta { font-family: var(--f-mono); font-size: 0.72rem; color: var(--ink-3); margin: 0 0 0.6rem; }
+  .phase > div > * { max-width: 68ch; }
+  .phase pre, .phase .tablewrap { max-width: none; }
+
+  /* ---------- Details ---------- */
+  details {
+    background: var(--surface); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 0.75rem 1rem; margin: 0.6rem 0;
+  }
+  summary { cursor: pointer; font-weight: 600; }
+  details[open] summary { margin-bottom: 0.6rem; }
+  details p { margin: 0.4rem 0; font-size: 0.94rem; }
+
+  /* ---------- Glossary ---------- */
+  .gloss { display: grid; gap: 0; margin: 1.5rem 0 0; }
+  .gloss div {
+    display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+    gap: 1rem; padding: 0.7rem 0; border-top: 1px solid var(--rule);
+  }
+  .gloss div:last-child { border-bottom: 1px solid var(--rule); }
+  .gloss dt { font-family: var(--f-mono); font-size: 0.85rem; color: var(--ink); font-weight: 600; }
+  .gloss dd { margin: 0; font-size: 0.92rem; color: var(--ink-2); }
+  @media (max-width: 620px) { .gloss div { grid-template-columns: minmax(0, 1fr); gap: 0.2rem; } }
+
+  footer {
+    border-top: 1px solid var(--rule); padding: 2rem 1.5rem 3rem; text-align: center;
+    color: var(--ink-3); font-family: var(--f-mono); font-size: 0.76rem; line-height: 1.7;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <p class="kicker">ap-south-1 &middot; EKS 1.36 &middot; Terraform + eksctl &middot; GitHub Actions</p>
+    <h1>Zero to Live</h1>
+    <p class="lede">
+      A blank AWS account, a repo, and no infrastructure. This runbook takes you through
+      <strong>thirteen phases</strong> to a React app serving on a public URL, with a CI/CD
+      pipeline that builds, tests, scans and deploys on every push &mdash;
+      and <strong>no AWS credential stored anywhere</strong>.
+    </p>
+    <span class="stamp">Keyless &middot; reproducible &middot; tearable-down</span>
+    <p class="lede" style="font-size:0.95rem">
+      Every command is meant to be copied as-is. Every phase ends with a <strong>checkpoint</strong>
+      &mdash; a command whose output tells you whether to continue or stop. Nearly every failure in
+      this process is <em>silent</em>, so the checkpoints are not optional.
+    </p>
+    <dl class="facts">
+      <div><dt>Region</dt><dd>ap-south-1</dd></div>
+      <div><dt>Cluster</dt><dd>ai-interview-platform-eks</dd></div>
+      <div><dt>Kubernetes</dt><dd>1.36 &middot; 2× t3.small</dd></div>
+      <div><dt>Registry</dt><dd>ECR &middot; …/frontend</dd></div>
+      <div><dt>Auth</dt><dd>GitHub OIDC &rarr; IAM</dd></div>
+      <div><dt>Time</dt><dd>~2 hours first run</dd></div>
+    </dl>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Contents">
+    <p class="kicker">Contents</p>
+    <ol>
+      <li><a href="#before"><span>00</span> Before you start</a></li>
+      <li><a href="#split"><span>01</span> The two-tool split</a></li>
+      <li><a href="#cost"><span>02</span> Cost &amp; discipline</a></li>
+      <li><a href="#p1"><span>1</span> Terraform: the VPC</a></li>
+      <li><a href="#p2"><span>2</span> Tag the subnets</a></li>
+      <li><a href="#p3"><span>3</span> EKS cluster</a></li>
+      <li><a href="#p4"><span>4</span> ECR repository</a></li>
+      <li><a href="#p5"><span>5</span> Keyless IAM role</a></li>
+      <li><a href="#p6"><span>6</span> Cluster access</a></li>
+      <li><a href="#p7"><span>7</span> GitHub config</a></li>
+      <li><a href="#p8"><span>8</span> SonarCloud</a></li>
+      <li><a href="#p9"><span>9</span> First deploy</a></li>
+      <li><a href="#p10"><span>10</span> Verify it runs</a></li>
+      <li><a href="#p11"><span>11</span> ALB controller</a></li>
+      <li><a href="#p12"><span>12</span> Public URL</a></li>
+      <li><a href="#teardown"><span>13</span> Teardown</a></li>
+      <li><a href="#trouble"><span>!</span> When it breaks</a></li>
+      <li><a href="#glossary"><span>?</span> Glossary</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+<!-- ======================================================= 00 -->
+<section id="before">
+  <h2>00 &nbsp;Before you start</h2>
+  <p class="srcref">Accounts, tools, and the one thing you need to bring</p>
+
+  <h3>Accounts</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Account</th><th>What for</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td>AWS</td><td>Everything runs here. An account with <code>AdministratorAccess</code> for you, ideally not the root user.</td><td>~₹0.22/hr while up — see <a href="#cost">section 02</a></td></tr>
+        <tr><td>GitHub</td><td>Hosts the code and runs the pipeline. A free account is enough.</td><td>Free</td></tr>
+        <tr><td>SonarCloud</td><td>Static analysis and coverage tracking. Free for public repos.</td><td>Free</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Tools to install</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Tool</th><th>Version</th><th>Used by</th><th>Install (Windows)</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">aws-cli</td><td>v2</td><td>almost every phase</td><td><code>winget install Amazon.AWSCLI</code></td></tr>
+        <tr><td class="mono">terraform</td><td>≥ 1.5</td><td>phase 1</td><td><code>winget install Hashicorp.Terraform</code></td></tr>
+        <tr><td class="mono">eksctl</td><td>≥ 0.230</td><td>phase 3</td><td><code>winget install eksctl</code> or <code>scoop install eksctl</code></td></tr>
+        <tr><td class="mono">kubectl</td><td>match cluster minor</td><td>phases 10–12</td><td><code>winget install Kubernetes.kubectl</code></td></tr>
+        <tr><td class="mono">helm</td><td>v3</td><td>phase 11</td><td><code>winget install Helm.Helm</code></td></tr>
+        <tr><td class="mono">git</td><td>any</td><td>everywhere</td><td><code>winget install Git.Git</code></td></tr>
+        <tr><td class="mono">node</td><td>≥ 20</td><td>local app work</td><td><code>winget install OpenJS.NodeJS.LTS</code></td></tr>
+        <tr><td class="mono">docker</td><td>any</td><td>local image testing (optional)</td><td>Docker Desktop</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>Then verify all of them in one go:</p>
+  <pre><span class="k">aws</span> --version && <span class="k">terraform</span> -version && <span class="k">eksctl</span> version && \
+<span class="k">kubectl</span> version --client && <span class="k">helm</span> version && <span class="k">node</span> --version</pre>
+
+  <div class="note">
+    <span class="tag">Set your region once</span>
+    <p>
+      Every command in this runbook assumes <code>ap-south-1</code>. Set it in the CLI config so you
+      never have to pass <code>--region</code>:
+    </p>
+  </div>
+  <pre><span class="k">aws</span> configure set region ap-south-1
+<span class="k">aws</span> sts get-caller-identity        <span class="c"># confirm you're the right account</span></pre>
+
+  <h3>The one thing you need</h3>
+  <p>
+    <strong>Patience with things that look stuck.</strong> The single most expensive mistake in this
+    whole process is pressing <kbd>Ctrl</kbd>+<kbd>C</kbd> on a command that is actually working.
+    AWS is a server-side state machine: your terminal is a window onto it, not a switch.
+    If something looks frozen, run a <code>describe</code> in a second terminal &mdash; never cancel.
+  </p>
+
+  <div class="note warn">
+    <span class="tag">Two commands that look identical and are not</span>
+    <p>
+      <code>kubectl get pods</code> failing with <code>Unauthorized</code> and failing with
+      <code>Forbidden</code> are <em>different problems with different fixes</em>. You will meet both.
+      See <a href="#trouble">the troubleshooting section</a>.
+    </p>
+  </div>
+</section>
+
+<!-- ======================================================= 01 -->
+<section id="split">
+  <h2>01 &nbsp;The two-tool split</h2>
+  <p class="srcref">The concept that explains most of the confusion in this runbook</p>
+
+  <p>
+    This stack is built with <strong>two tools that do not know the other exists</strong>. Terraform
+    builds the network. eksctl builds the Kubernetes cluster. Each keeps its own record of what it
+    owns, in a different place.
+  </p>
+
+  <figure class="plate extra-wide">
+    <div class="scroll">
+      <svg viewBox="0 0 1080 430" role="img"
+           aria-label="Left: Terraform owns 14 networking resources, tracked in a local terraform.tfstate file. Right: eksctl owns the EKS cluster, tracked in AWS CloudFormation stacks. The cluster sits inside the VPC.
+           Deleting in the wrong order leaves the VPC undeletable.">
+        <defs>
+          <marker id="m1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#33484D"/>
+          </marker>
+          <marker id="m1b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#4FD1C5"/>
+          </marker>
+          <marker id="m1c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#E58179"/>
+          </marker>
+        </defs>
+
+        <!-- Terraform column -->
+        <rect class="box-a" x="24" y="30" width="250" height="52" rx="3"/>
+        <text class="lbl" x="149" y="52" text-anchor="middle">Terraform</text>
+        <text class="sub" x="149" y="70" text-anchor="middle">builds the network</text>
+
+        <rect class="box" x="24" y="102" width="250" height="118" rx="3"/>
+        <text class="lbl-s" x="40" y="124">owns: 14 resources</text>
+        <text class="sub" x="40" y="145">VPC &middot; 4 subnets &middot; IGW &middot; EIP</text>
+        <text class="sub" x="40" y="163">NAT &middot; 2 route tables</text>
+        <text class="sub" x="40" y="181">4 route table associations</text>
+        <text class="acc" x="40" y="205">all deletable in 3 minutes</text>
+
+        <rect class="box-d" x="24" y="240" width="250" height="86" rx="3"/>
+        <text class="lbl-s" x="40" y="262">state lives in</text>
+        <text class="sub" x="40" y="283">Terraform/terraform.tfstate</text>
+        <text class="sub" x="40" y="301">a file on YOUR laptop</text>
+        <text class="elab-d" x="40" y="319">lose it → lose ownership</text>
+
+        <!-- eksctl column -->
+        <rect class="box-a" x="806" y="30" width="250" height="52" rx="3"/>
+        <text class="lbl" x="931" y="52" text-anchor="middle">eksctl</text>
+        <text class="sub" x="931" y="70" text-anchor="middle">builds the cluster</text>
+
+        <rect class="box" x="806" y="102" width="250" height="118" rx="3"/>
+        <text class="lbl-s" x="822" y="124">owns: ~20 resources</text>
+        <text class="sub" x="822" y="145">EKS control plane &middot; nodegroup</text>
+        <text class="sub" x="822" y="163">node IAM role &middot; OIDC provider</text>
+        <text class="sub" x="822" y="181">3 security groups &middot; ENIs</text>
+        <text class="acc" x="822" y="205">all deletable in 8 minutes</text>
+
+        <rect class="box-d" x="806" y="240" width="250" height="86" rx="3"/>
+        <text class="lbl-s" x="822" y="262">state lives in</text>
+        <text class="sub" x="822" y="283">AWS CloudFormation stacks</text>
+        <text class="sub" x="822" y="301">named eksctl-&lt;cluster&gt;-*</text>
+        <text class="elab-d" x="822" y="319">visible in the AWS console</text>
+
+        <!-- middle: the VPC boundary -->
+        <rect class="zone" x="330" y="102" width="420" height="196" rx="4"/>
+        <text class="zonelbl" x="350" y="124">THE VPC — TERRAFORM'S TERRITORY</text>
+
+        <rect class="box-a" x="360" y="150" width="360" height="120" rx="3"/>
+        <text class="lbl-s" x="540" y="176" text-anchor="middle">EKS cluster + nodes</text>
+        <text class="sub" x="540" y="197" text-anchor="middle">eksctl's territory, inside Terraform's</text>
+        <text class="sub" x="540" y="219" text-anchor="middle">control-plane ENIs live in these subnets</text>
+        <text class="sub" x="540" y="241" text-anchor="middle">eksctl-created security groups are attached</text>
+        <text class="elab-d" x="540" y="262" text-anchor="middle">so the VPC cannot be deleted while EKS exists</text>
+
+        <path class="edge-a" d="M274 160 H326 V200 H332" marker-end="url(#m1b)"/>
+        <path class="edge-a" d="M806 160 H780 V200 H784" marker-end="url(#m1b)"/>
+
+        <!-- teardown row -->
+        <rect class="box" x="330" y="330" width="420" height="72" rx="3"/>
+        <text class="lbl-s" x="540" y="354" text-anchor="middle">Teardown order is therefore fixed</text>
+        <text class="acc" x="540" y="377" text-anchor="middle">1. delete the cluster &nbsp;→&nbsp; 2. destroy the VPC</text>
+        <text class="elab-d" x="540" y="395" text-anchor="middle">reverse it and the VPC destroy fails with DependencyViolation</text>
+
+        <path class="edge-d" d="M806 283 H760 V366 H754" marker-end="url(#m1c)"/>
+        <path class="edge-d" d="M274 283 H300 V380 H326" marker-end="url(#m1c)"/>
+      </svg>
+    </div>
+    <figcaption>
+      <b>Two owners, one boundary.</b> The cluster is <em>inside</em> the VPC but does not belong to it.
+      That nesting is why teardown has a fixed order, and why <code>terraform destroy</code> alone is
+      not enough to stop the bill.
+    </figcaption>
+  </figure>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Question</th><th>Terraform</th><th>eksctl</th></tr></thead>
+      <tbody>
+        <tr><td>Where is its memory?</td><td class="mono">terraform.tfstate (local file)</td><td class="mono">CloudFormation stacks (in AWS)</td></tr>
+        <tr><td>What if the memory is lost?</td><td>Terraform no longer knows it owns anything</td><td>Nothing &mdash; AWS holds it</td></tr>
+        <tr><td>Delete command</td><td class="mono">terraform destroy</td><td class="mono">eksctl delete cluster</td></tr>
+        <tr><td>Does it clean up the other's resources?</td><td><span class="tag-no">No</span></td><td><span class="tag-no">No</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="tag">Why not do everything in one tool?</span>
+    <p>
+      You can &mdash; Terraform has an EKS module. But each tool is genuinely better at its half:
+      Terraform models dependencies between explicit resources, while eksctl knows the ~20-object
+      ritual EKS requires and does it in one command. Learning both, and knowing where the seam is,
+      is more useful than picking one and fighting it.
+    </p>
+  </div>
+</section>
+
+<!-- ======================================================= 02 -->
+<section id="cost">
+  <h2>02 &nbsp;Cost &amp; discipline</h2>
+  <p class="srcref">Read this before you run anything, and again before you walk away</p>
+
+  <p>
+    EKS is not free, and two of its charges are easy to miss because they do not scale with what
+    you are actually using.
+  </p>
+
+  <figure class="plate">
+    <div class="scroll">
+      <svg viewBox="0 0 1060 300" role="img"
+           aria-label="Cost per hour: EKS control plane 0.10, nodes 0.042, NAT 0.062, admin EC2 0.010, ALB 0.0225.
+           The control plane bills even with zero nodes; the NAT bills continuously.">
+        <text class="sub" x="30" y="34">cost per hour, while the stack is up</text>
+
+        <!-- bars -->
+        <text class="lbl-s" x="30" y="76">control plane</text>
+        <rect class="box-d" x="180" y="62" width="420" height="20" rx="3"/>
+        <text class="dng" x="616" y="78">$0.100 &nbsp;— billed even with ZERO nodes</text>
+
+        <text class="lbl-s" x="30" y="112">NAT gateway</text>
+        <rect class="box-d" x="180" y="98" width="260" height="20" rx="3"/>
+        <text class="dng" x="456" y="114">$0.062 &nbsp;— 24/7, no traffic needed</text>
+
+        <text class="lbl-s" x="30" y="148">2× t3.small nodes</text>
+        <rect class="box" x="180" y="134" width="176" height="20" rx="3"/>
+        <text class="elab" x="372" y="150">$0.042 &nbsp;— only while nodes run</text>
+
+        <text class="lbl-s" x="30" y="184">ALB (when added)</text>
+        <rect class="box" x="180" y="170" width="95" height="20" rx="3"/>
+        <text class="elab" x="291" y="186">$0.023 &nbsp;+ LCU — only while an Ingress exists</text>
+
+        <text class="lbl-s" x="30" y="220">admin EC2 (optional)</text>
+        <rect class="box" x="180" y="206" width="42" height="20" rx="3"/>
+        <text class="elab" x="238" y="222">$0.010 &nbsp;— stop it when idle</text>
+
+        <rect class="zone" x="30" y="248" width="1000" height="34" rx="3"/>
+        <text class="lbl-s" x="530" y="270" text-anchor="middle">full stack ≈ $0.22/hr ≈ ₹19/hr ≈ ₹450/day &nbsp;&nbsp;·&nbsp;&nbsp; target between sessions: ₹0/day</text>
+      </svg>
+    </div>
+    <figcaption>
+      <b>The two that surprise people are drawn in red.</b> The control plane bills whether or not
+      anything is running on it, and the NAT gateway bills whether or not any traffic passes through it.
+      Nothing in the cluster needs to be busy for either to charge you.
+    </figcaption>
+  </figure>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>What you did</th><th>Monthly if left running</th><th>What stopping it requires</th></tr></thead>
+      <tbody>
+        <tr><td>Nothing &mdash; fresh account</td><td class="mono">₹0</td><td>&mdash;</td></tr>
+        <tr><td>VPC only (<code>terraform apply</code>)</td><td class="mono">~₹3,800</td><td><code>terraform destroy</code></td></tr>
+        <tr><td>+ EKS cluster</td><td class="mono">~₹10,200</td><td><code>eksctl delete cluster</code></td></tr>
+        <tr><td>+ 2 nodes</td><td class="mono">~₹13,000</td><td>same command &mdash; it takes the nodegroup too</td></tr>
+        <tr><td>+ ALB Ingress</td><td class="mono">~₹14,800</td><td><code>kubectl delete ingress</code> <em>before</em> the cluster</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note bad">
+    <span class="tag">The order that costs money if you get it wrong</span>
+    <p>
+      The ALB is <strong>owned by the Kubernetes controller, not by AWS automation</strong>. If you
+      uninstall the controller while an Ingress object still exists, nothing in the cluster knows about
+      the load balancer any more. It stays in your account, invisible, billing ~₹1,400/month until
+      somebody finds it in the console.
+    </p>
+    <p>
+      Delete the <em>Ingress</em> first. Always. The teardown section has the exact sequence.
+    </p>
+  </div>
+
+  <h3>The habit</h3>
+  <ul>
+    <li><strong>Build it, learn on it, tear it down the same day.</strong> Two hours of EKS costs about ₹40.</li>
+    <li><strong>Never leave it up "just in case."</strong> A rebuild is one <code>terraform apply</code> and one <code>eksctl create cluster</code>.</li>
+    <li><strong>Verify the teardown, don't assume it.</strong> Every teardown step in this runbook ends with a command whose output proves it worked.</li>
+    <li><strong>Keep the ECR repository and the IAM policy.</strong> Both cost nothing and make the next rebuild faster.</li>
+  </ul>
+
+  <div class="note good">
+    <span class="tag">A safe exception</span>
+    <p>
+      Stopping (not terminating) an EC2 instance with a 30 GB volume costs nothing if your account is
+      in its first 12 months &mdash; EBS storage is inside the free tier. That is why the runbook uses
+      a stoppable "admin box" rather than terminating it.
+    </p>
+  </div>
+</section>
+
+<!-- ======================================================= PHASES -->
+<section id="p1">
+  <h2>Phase 1 &nbsp;Terraform: the VPC</h2>
+  <p class="srcref">Terraform/ &middot; 14 resources &middot; ~4 minutes</p>
+
+  <p>
+    Fourteen resources describe a network shaped for Kubernetes: a VPC, two public and two private
+    subnets across two Availability Zones, an Internet Gateway for the public ones, and a NAT Gateway
+    so the private ones can still reach the internet outbound.
+  </p>
+
+  <figure class="plate">
+    <div class="scroll">
+      <svg viewBox="0 0 1060 340" role="img"
+           aria-label="VPC 10.0.0.0/16 containing two public subnets routed to an Internet Gateway and two private subnets routed to a NAT Gateway.
+           The public subnets span ap-south-1a and ap-south-1b; the private subnets do too.">
+        <defs>
+          <marker id="n1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#33484D"/>
+          </marker>
+        </defs>
+        <rect class="zone" x="24" y="24" width="1012" height="296" rx="4"/>
+        <text class="zonelbl" x="44" y="48">VPC 10.0.0.0/16 &nbsp;·&nbsp; ap-south-1</text>
+
+        <rect class="box" x="56" y="70" width="200" height="52" rx="3"/>
+        <text class="lbl-s" x="156" y="92" text-anchor="middle">Internet Gateway</text>
+        <text class="sub" x="156" y="110" text-anchor="middle">igw-…</text>
+
+        <rect class="box" x="56" y="200" width="200" height="52" rx="3"/>
+        <text class="lbl-s" x="156" y="222" text-anchor="middle">NAT Gateway</text>
+        <text class="sub" x="156" y="240" text-anchor="middle">nat-… + Elastic IP</text>
+
+        <rect class="box-a" x="330" y="64" width="200" height="64" rx="3"/>
+        <text class="lbl-s" x="430" y="86" text-anchor="middle">Public subnet 1</text>
+        <text class="sub" x="430" y="104" text-anchor="middle">10.0.1.0/24 · ap-south-1b</text>
+        <text class="acc" x="430" y="121" text-anchor="middle">map-public-ip: on</text>
+
+        <rect class="box-a" x="330" y="144" width="200" height="64" rx="3"/>
+        <text class="lbl-s" x="430" y="166" text-anchor="middle">Public subnet 2</text>
+        <text class="sub" x="430" y="184" text-anchor="middle">10.0.2.0/24 · ap-south-1a</text>
+        <text class="acc" x="430" y="201" text-anchor="middle">map-public-ip: on</text>
+
+        <rect class="box" x="580" y="64" width="200" height="64" rx="3"/>
+        <text class="lbl-s" x="680" y="86" text-anchor="middle">Private subnet 1</text>
+        <text class="sub" x="680" y="104" text-anchor="middle">10.0.11.0/24 · ap-south-1a</text>
+        <text class="sub" x="680" y="121" text-anchor="middle">nodes live here</text>
+
+        <rect class="box" x="580" y="144" width="200" height="64" rx="3"/>
+        <text class="lbl-s" x="680" y="166" text-anchor="middle">Private subnet 2</text>
+        <text class="sub" x="680" y="184" text-anchor="middle">10.0.12.0/24 · ap-south-1b</text>
+        <text class="sub" x="680" y="201" text-anchor="middle">nodes live here</text>
+
+        <path class="edge" d="M256 96 H300 V96 H326" marker-end="url(#n1a)"/>
+        <text class="elab" x="292" y="88" text-anchor="middle">route 0.0.0.0/0</text>
+        <path class="edge" d="M256 226 H300 V176 H326" marker-end="url(#n1a)"/>
+        <text class="elab" x="292" y="218" text-anchor="middle">route 0.0.0.0/0</text>
+
+        <path class="edge" d="M530 96 H560 V140 H576" marker-end="url(#n1a)"/>
+        <text class="elab" x="552" y="128" text-anchor="middle">route</text>
+        <path class="edge" d="M530 176 H560 V172 H576" marker-end="url(#n1a)"/>
+
+        <rect class="box-a" x="820" y="64" width="190" height="144" rx="3"/>
+        <text class="lbl-s" x="915" y="88" text-anchor="middle">EKS worker nodes</text>
+        <text class="sub" x="915" y="110" text-anchor="middle">2× t3.small</text>
+        <text class="sub" x="915" y="130" text-anchor="middle">no public IP</text>
+        <text class="sub" x="915" y="150" text-anchor="middle">pull images via NAT</text>
+        <text class="acc" x="915" y="176" text-anchor="middle">one per AZ</text>
+        <path class="edge-a" d="M780 96 H816" marker-end="url(#n1a)"/>
+
+        <text class="sub" x="530" y="252" text-anchor="middle">the two AZs matter — an ALB refuses to be created in a single one</text>
+      </svg>
+    </div>
+    <figcaption>
+      <b>Two AZs, four subnets, one NAT gateway.</b> Public subnets are for load balancers; private
+      subnets are for the nodes. The nodes reach the internet outbound through the NAT, which is why
+      they can pull images without ever having a public address.
+    </figcaption>
+  </figure>
+
+  <span class="filename">Terraform/main.tf — provider pinning</span>
+  <pre><span class="k">terraform</span> {
+  <span class="k">required_version</span> = "&gt;= 1.5.0"
+  <span class="k">required_providers</span> {
+    <span class="k">aws</span> = {
+      <span class="k">source</span>  = "hashicorp/aws"
+      <span class="k">version</span> = "~&gt; 5.0"
+    }
+  }
+}
+
+<span class="k">provider</span> "aws" {
+  <span class="k">region</span> = var.aws_region
+}</pre>
+  <p>
+    The version constraint matters more than it looks. AWS provider <code>~&gt; 5.0</code> will not
+    silently jump to v6, where some resource arguments changed. Pin, then upgrade deliberately.
+  </p>
+
+  <h3>Run it</h3>
+  <pre><span class="k">cd</span> Terraform
+<span class="k">terraform</span> init
+<span class="k">terraform</span> plan          <span class="c"># read this — expect exactly "14 to add"</span>
+<span class="k">terraform</span> apply
+<span class="k">terraform</span> output        <span class="c"># copy the IDs — the next four phases need them</span></pre>
+
+  <p>Save the outputs somewhere you can reach them. They are the addresses of everything you just built:</p>
+
+  <span class="filename">terraform output</span>
+  <pre><span class="k">vpc_id</span>                = "vpc-0475e4a8c8fdc4a52"
+<span class="k">public_subnet_ids</span>     = ["subnet-009dd86fb8453154f", "subnet-01e805407bc958957"]
+<span class="k">private_subnet_ids</span>    = ["subnet-0f7d7f7dafd38bc5e", "subnet-082db3dc8f0cd7be1"]
+<span class="k">internet_gateway_id</span>   = "igw-08e5ae149d16c6d9a"
+<span class="k">nat_gateway_id</span>        = "nat-0f37b4d01f3796f35"</pre>
+
+  <div class="note warn">
+    <span class="tag">These IDs change on every rebuild</span>
+    <p>
+      Destroy then re-apply and you get entirely new subnets. Never hardcode them into notes that
+      outlive one session, and never assume an ID from a previous session still exists. Always re-read
+      <code>terraform output</code>.
+    </p>
+  </div>
+
+  <div class="note good">
+    <span class="tag">Checkpoint</span>
+    <p>
+      <code>Apply complete! Resources: 14 added, 0 changed, 0 destroyed.</code> &mdash; and the NAT
+      gateway takes about 1m45s, which is normal and is the slowest part.
+    </p>
+  </div>
+
+  <h3>Two things your VPC needs for Kubernetes</h3>
+  <p>Both are one-liners in <code>vpc.tf</code> and both are hard requirements:</p>
+  <pre><span class="k">resource</span> "aws_vpc" "my-vpc" {
+  <span class="k">cidr_block</span>           = var.vpc_cidr
+  <span class="k">enable_dns_support</span>   = <span class="w">true</span>    <span class="c"># EKS will not work without this</span>
+  <span class="k">enable_dns_hostnames</span> = <span class="w">true</span>    <span class="c"># nodes need private DNS names</span>
+}</pre>
+  <p>
+    Without DNS hostnames, nodes register with the cluster but kubelet cannot resolve
+    <code>ip-10-0-x-x.region.compute.internal</code>, and the nodes never join.
+  </p>
+</section>
+
+<section id="p2">
+  <h2>Phase 2 &nbsp;Tag the subnets</h2>
+  <p class="srcref">Pure AWS CLI &middot; ~30 seconds &middot; the step everyone forgets on rebuild</p>
+
+  <p>
+    You never tell the load balancer controller which subnets to use. It <em>discovers</em> them by
+    reading AWS resource tags. No tags means it finds nothing, creates nothing, and reports nothing
+    &mdash; the classic silent failure.
+  </p>
+
+  <span class="filename">On your machine — paste your own IDs from terraform output</span>
+  <pre><span class="k">export</span> CLUSTER_NAME=ai-interview-platform-eks
+<span class="k">export</span> PUB1=subnet-009dd86fb8453154f      <span class="c"># public, ap-south-1b</span>
+<span class="k">export</span> PUB2=subnet-01e805407bc958957      <span class="c"># public, ap-south-1a</span>
+<span class="k">export</span> PVT1=subnet-0f7d7f7dafd38bc5e      <span class="c"># private, ap-south-1a</span>
+<span class="k">export</span> PVT2=subnet-082db3dc8f0cd7be1      <span class="c"># private, ap-south-1b</span>
+<span class="k">export</span> VPC=vpc-0475e4a8c8fdc4a52
+
+<span class="c"># Public subnets → internet-facing load balancers</span>
+<span class="k">aws</span> ec2 create-tags --resources $PUB1 $PUB2 \
+  --tags Key=kubernetes.io/role/elb,Value=1
+
+<span class="c"># Private subnets → internal load balancers</span>
+<span class="k">aws</span> ec2 create-tags --resources $PVT1 $PVT2 \
+  --tags Key=kubernetes.io/role/internal-elb,Value=1
+
+<span class="c"># All four → usable by this cluster</span>
+<span class="k">aws</span> ec2 create-tags --resources $PUB1 $PUB2 $PVT1 $PVT2 \
+  --tags Key=kubernetes.io/cluster/$CLUSTER_NAME,Value=shared</pre>
+
+  <div class="note warn">
+    <span class="tag">create-tags prints nothing on success</span>
+    <p>
+      Silence is the success signal. A typo in the subnet ID fails loudly, but a typo in the
+      <em>tag key</em> silently writes a tag nothing will ever read. Always verify with the
+      <code>describe</code> below.
+    </p>
+  </div>
+
+  <span class="filename">Checkpoint — every row must show a value in elb or internal, and cluster=shared</span>
+  <pre><span class="k">aws</span> ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC" \
+  --query 'sort_by(Subnets,&amp;CidrBlock)[].{Cidr:CidrBlock,AZ:AvailabilityZone,
+    elb:Tags[?Key==`kubernetes.io/role/elb`]|[0].Value,
+    internal:Tags[?Key==`kubernetes.io/role/internal-elb`]|[0].Value,
+    cluster:Tags[?Key==`kubernetes.io/cluster/ai-interview-platform-eks`]|[0].Value}' \
+  --output table</pre>
+
+  <div class="note bad">
+    <span class="tag">If you manage tags in Terraform, this is where you will lose an hour</span>
+    <p>
+      A <code>lifecycle { ignore_changes = [tags] }</code> block on your subnets means Terraform
+      <strong>silently discards</strong> any tag you put in <code>vpc.tf</code>. The tags never appear,
+      and <code>plan</code> reports no changes. To manage these in code you must delete the
+      <code>ignore_changes</code> block first &mdash; there is no error message to tell you this.
+    </p>
+  </div>
+
+  <div class="note good">
+    <span class="tag">Why this phase is worth doing even though it feels manual</span>
+    <p>
+      These tags are the <em>only</em> thing that connects your VPC to the load balancer controller.
+      Getting them right is what makes phase 12 work, and getting them wrong is the number one cause
+      of a load balancer that never appears.
+    </p>
+  </div>
+</section>
+
+<section id="p3">
+  <h2>Phase 3 &nbsp;EKS cluster</h2>
+  <p class="srcref">eksctl &middot; ~15–20 minutes &middot; the long one</p>
+
+  <p>
+    One command creates roughly twenty AWS objects: the control plane, a managed node group, two IAM
+    roles, an OIDC provider, security groups, and the ENIs that connect the control plane to your
+    subnets. Then it writes your kubeconfig.
+  </p>
+
+  <span class="filename">On your machine — run from the repo root</span>
+  <pre><span class="k">eksctl</span> create cluster \
+  --name $CLUSTER_NAME \
+  --region ap-south-1 \
+  --version 1.36 \
+  --vpc-private-subnets=$PVT1,$PVT2 \
+  --vpc-public-subnets=$PUB1,$PUB2 \
+  --nodegroup-name default \
+  --node-type t3.small \
+  --nodes 2 --nodes-min 2 --nodes-max 3 \
+  --node-private-networking \
+  --managed \
+  --with-oidc</pre>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Flag</th><th>What it does, and why it is set that way</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">--vpc-*-subnets</td><td>Tells eksctl to use your existing VPC instead of building its own. It will <strong>not</strong> create route tables or NAT gateways &mdash; those must already exist.</td></tr>
+        <tr><td class="mono">--node-private-networking</td><td>Puts the worker nodes in the private subnets. They reach the internet outbound via the NAT gateway, and have no public IP.</td></tr>
+        <tr><td class="mono">--managed</td><td>A managed node group &mdash; EKS owns the Auto Scaling group and handles rolling updates. The default on recent eksctl, but explicit is clearer.</td></tr>
+        <tr><td class="mono">--with-oidc</td><td><strong>Register the cluster's OIDC issuer in IAM.</strong> Required for IRSA in phases 11–12. Skipping it is the number one reason a controller "starts but does nothing."</td></tr>
+        <tr><td class="mono">--version 1.36</td><td>Omit to let eksctl pick its tested default. Check <code>aws eks describe-cluster-versions</code> first if you pin one.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note bad">
+    <span class="tag">Do not interrupt this, no matter how stuck it looks</span>
+    <p>
+      eksctl prints <code>waiting for CloudFormation stack</code> every 30 seconds with no spinner and
+      no progress bar. It looks frozen. It is not &mdash; it is polling AWS.
+    </p>
+    <p>
+      <kbd>Ctrl</kbd>+<kbd>C</kbd> kills only your local watcher. <strong>AWS keeps building.</strong>
+      You then have a half-finished cluster, no kubeconfig written, and a bill running. If you must
+      check progress, open a <em>second</em> terminal:
+    </p>
+  </div>
+
+  <span class="filename">Second terminal — safe to run, safe to Ctrl+C</span>
+  <pre><span class="k">while</span> true; <span class="k">do</span>
+  echo "--- $(date +%H:%M:%S) ---"
+  aws eks describe-nodegroup --cluster-name $CLUSTER_NAME --region ap-south-1 \
+    --nodegroup-name default \
+    --query 'nodegroup.[status,health.issues]' --output json 2&gt;/dev/null \
+    || echo "nodegroup not created yet"
+  sleep 60
+<span class="k">done</span></pre>
+
+  <span class="filename">Checkpoint — 2 nodes Ready, no EXTERNAL-IP (they are private)</span>
+  <pre><span class="k">kubectl</span> get nodes -o wide
+<span class="k">kubectl</span> get pods -n kube-system
+<span class="k">aws</span> eks list-addons --cluster-name $CLUSTER_NAME</pre>
+
+  <p>
+    Expect two nodes in <code>Ready</code>, and eight pods all <code>Running</code> with
+    <strong>zero restarts</strong>:
+  </p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Pod</th><th>Count</th><th>Kind</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">aws-node-*</td><td>2 (<code>2/2</code>)</td><td>DaemonSet</td><td>VPC CNI — gives each pod a real address from your subnet CIDR</td></tr>
+        <tr><td class="mono">kube-proxy-*</td><td>2</td><td>DaemonSet</td><td>Programs the network rules that make Services work</td></tr>
+        <tr><td class="mono">coredns-*</td><td>2</td><td>Deployment</td><td>Cluster DNS — service-name resolution</td></tr>
+        <tr><td class="mono">metrics-server-*</td><td>2</td><td>Deployment</td><td>Feeds <code>kubectl top</code> and horizontal autoscaling</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="tag">Where the node IPs come from</span>
+    <p>
+      Each node gets a private address from the subnet CIDR it was launched in &mdash; something like
+      <code>10.0.11.x</code> and <code>10.0.12.x</code>. If you see addresses from
+      <code>172.31.x.x</code> instead, the nodes landed in the <em>default</em> VPC, not yours:
+      <code>--node-private-networking</code> did not take effect.
+    </p>
+  </div>
+
+  <div class="note warn">
+    <span class="tag">If it fails, this is the command that tells you why</span>
+    <p>
+      <code>aws eks describe-nodegroup … --query 'nodegroup.health.issues'</code>. EKS names the cause
+      directly. The two most common codes are <code>NodeCreationFailure</code> — usually a missing
+      node-role permission or no outbound internet — and <code>InsufficientFreeAddresses</code>.
+    </p>
+  </div>
+</section>
+
+<section id="p4">
+  <h2>Phase 4 &nbsp;ECR repository</h2>
+  <p class="srcref">~10 seconds &middot; do this once, keep it forever</p>
+
+  <p>
+    ECR is where the pipeline pushes your built image. Create it before the first pipeline run, or the
+    push fails with <code>name unknown: The repository does not exist</code>.
+  </p>
+
+  <pre><span class="k">aws</span> ecr create-repository \
+  --repository-name ai-interview-dev-platform/frontend \
+  --region ap-south-1 \
+  --image-scanning-configuration scanOnPush=true</pre>
+
+  <div class="note bad">
+    <span class="tag">The slash is part of the name</span>
+    <p>
+      <code>ai-interview-dev-platform/frontend</code> is a single repository name that happens to
+      contain a slash &mdash; not a folder path. The pipeline builds its image reference as
+      <code>$REGISTRY/$ECR_REPO/frontend:$SHA</code>, so the repository must be named exactly that.
+      Creating <code>ai-interview-dev-platform</code> alone will not work.
+    </p>
+  </div>
+
+  <span class="filename">Checkpoint</span>
+  <pre><span class="k">aws</span> ecr describe-repositories --region ap-south-1 \
+  --query "repositories[].[repositoryName,repositoryUri]" --output table</pre>
+
+  <div class="note">
+    <span class="tag">Deliberately skipped: IMMUTABLE tags</span>
+    <p>
+      Immutable tags are the best practice, but they mean re-running a failed workflow on the same
+      commit fails with <code>tag already exists</code>. While you are learning and re-running often,
+      leave the default (<code>MUTABLE</code>). Turn it on once the pipeline is stable.
+    </p>
+  </div>
+
+  <h3>Optional: stop images accumulating</h3>
+  <pre><span class="k">aws</span> ecr put-lifecycle-policy \
+  --repository-name ai-interview-dev-platform/frontend \
+  --region ap-south-1 \
+  --lifecycle-policy-text '{"rules":[{"rulePriority":1,"description":"Keep last 10",
+    "selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":10},
+    "action":{"type":"expire"}}]}'</pre>
+</section>
+
+<section id="p5">
+  <h2>Phase 5 &nbsp;Keyless IAM role</h2>
+  <p class="srcref">The part that means no AWS credential exists anywhere</p>
+
+  <p>
+    GitHub Actions needs permission to push to ECR and talk to your cluster. The usual approach is to
+    create an AWS user, generate an access key, and paste it into GitHub as a secret. This runbook
+    does something better: <strong>no key is created at all.</strong>
+  </p>
+
+  <figure class="plate">
+    <div class="scroll">
+      <svg viewBox="0 0 1120 380" role="img"
+           aria-label="Five-step OIDC exchange: the runner asks GitHub for a signed identity token, presents it to AWS STS with the role ARN,
+           STS verifies the signature against the registered OIDC provider, then checks the trust policy conditions, and returns one-hour credentials.">
+        <defs>
+          <marker id="o1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#4FD1C5"/>
+          </marker>
+        </defs>
+
+        <rect class="box" x="60" y="26" width="240" height="48" rx="3"/>
+        <text class="lbl-s" x="180" y="48" text-anchor="middle">GitHub Actions runner</text>
+        <text class="sub" x="180" y="65" text-anchor="middle">ubuntu-latest, disposable</text>
+
+        <rect class="box" x="820" y="26" width="240" height="48" rx="3"/>
+        <text class="lbl-s" x="940" y="48" text-anchor="middle">AWS STS</text>
+        <text class="sub" x="940" y="65" text-anchor="middle">in your account</text>
+
+        <line class="life" x1="180" y1="76" x2="180" y2="352"/>
+        <line class="life" x1="940" y1="76" x2="940" y2="352"/>
+
+        <g fill="#4FD1C5">
+          <circle cx="30" cy="118" r="11"/><circle cx="30" cy="172" r="11"/>
+          <circle cx="30" cy="226" r="11"/><circle cx="30" cy="280" r="11"/>
+          <circle cx="30" cy="330" r="11"/>
+        </g>
+        <g class="numbadge" text-anchor="middle">
+          <text x="30" y="122">1</text><text x="30" y="176">2</text>
+          <text x="30" y="230">3</text><text x="30" y="284">4</text>
+          <text x="30" y="334">5</text>
+        </g>
+
+        <path class="edge-a" d="M180 106 H244 V130 H188" marker-end="url(#o1a)"/>
+        <text class="lbl-s" x="262" y="112">ask GitHub for a signed identity token</text>
+        <text class="sub" x="262" y="130">only works because the job declares permissions: id-token: write</text>
+
+        <path class="edge-a" d="M182 172 H932" marker-end="url(#o1a)"/>
+        <text class="lbl-s" x="556" y="164" text-anchor="middle">AssumeRoleWithWebIdentity( token, role ARN )</text>
+
+        <path class="edge-a" d="M940 217 H1004 V241 H948" marker-end="url(#o1a)"/>
+        <text class="lbl-s" x="928" y="224" text-anchor="end">is the signature real?</text>
+        <text class="sub" x="928" y="242" text-anchor="end">checked against token.actions.githubusercontent.com</text>
+
+        <path class="edge-a" d="M940 271 H1004 V295 H948" marker-end="url(#o1a)"/>
+        <text class="lbl-s" x="928" y="278" text-anchor="end">does the trust policy allow it?</text>
+        <text class="sub" x="928" y="296" text-anchor="end">sub must be this repo + branch · aud must be sts.amazonaws.com</text>
+
+        <path class="edge-a" d="M938 330 H188" marker-end="url(#o1a)"/>
+        <text class="lbl-s" x="560" y="322" text-anchor="middle">1-hour access key + secret + session token</text>
+
+        <text class="elab" x="560" y="370" text-anchor="middle">nothing is stored: the token lives in memory, the credentials expire on their own</text>
+      </svg>
+    </div>
+    <figcaption>
+      <b>Steps 3 and 4 are the entire security story.</b> Step 3 proves the token came from GitHub.
+      Step 4 proves it came from <em>your</em> repository &mdash; without it, any GitHub user in the
+      world could assume your role.
+    </figcaption>
+  </figure>
+
+  <h3>5a — Register GitHub as an identity provider</h3>
+  <pre><span class="k">aws</span> iam create-open-id-connect-provider \
+  --url https://token.actions.githubusercontent.com \
+  --client-id-list sts.amazonaws.com</pre>
+  <p>
+    This says "tokens signed by GitHub are worth reading." It grants nothing on its own &mdash;
+    permission comes entirely from the trust policy in 5c.
+  </p>
+
+  <h3>5b — Write the trust policy</h3>
+  <p>
+    Replace <code>&lt;ACCOUNT_ID&gt;</code> and the repo name, then save as
+    <code>trust.json</code>:
+  </p>
+
+  <span class="filename">trust.json</span>
+  <pre>{
+  <span class="k">"Version"</span>: "2012-10-17",
+  <span class="k">"Statement"</span>: [{
+    <span class="k">"Effect"</span>: "Allow",
+    <span class="k">"Principal"</span>: {
+      <span class="c">// the provider you registered in 5a</span>
+      <span class="k">"Federated"</span>: "arn:aws:iam::&lt;ACCOUNT_ID&gt;:oidc-provider/token.actions.githubusercontent.com"
+    },
+    <span class="k">"Action"</span>: "sts:AssumeRoleWithWebIdentity",
+    <span class="k">"Condition"</span>: {
+      <span class="k">"StringEquals"</span>: {
+        <span class="c">// who the token is FOR — must be AWS</span>
+        "token.actions.githubusercontent.com:aud": <span class="w">"sts.amazonaws.com"</span>,
+
+        <span class="c">// who the token is FROM — pin the exact repo and branch</span>
+        "token.actions.githubusercontent.com:sub": <span class="w">"repo:OWNER/REPO:ref:refs/heads/main"</span>
+      }
+    }
+  }]
+}</pre>
+
+  <div class="note bad">
+    <span class="tag">Two ways to get the sub claim wrong</span>
+    <p>
+      <strong>1 &mdash; Branch vs environment.</strong> A job with no environment gets
+      <code>repo:OWNER/REPO:ref:refs/heads/main</code>. A job that declares
+      <code>environment: production</code> gets <code>repo:OWNER/REPO:environment:production</code>
+      instead. Copy the wrong form and every deploy fails with
+      <code>Not authorized to perform sts:AssumeRoleWithWebIdentity</code> and no explanation.
+    </p>
+    <p>
+      <strong>2 &mdash; Wildcards.</strong> <code>"repo:OWNER/*"</code> accepts tokens from a fork, a
+      pull request, or an unrelated repository. If you need several branches, use
+      <code>StringLike</code> with an explicit pattern &mdash; never a bare wildcard.
+    </p>
+  </div>
+
+  <h3>5c — Create the role and its permissions</h3>
+  <span class="filename">permissions.json — exactly what the pipeline needs</span>
+  <pre>{
+  <span class="k">"Version"</span>: "2012-10-17",
+  <span class="k">"Statement"</span>: [
+    {
+      <span class="c">// can only be granted account-wide; by itself it lets you log in,
+      // not read or write any repository</span>
+      <span class="k">"Effect"</span>: "Allow",
+      <span class="k">"Action"</span>: "ecr:GetAuthorizationToken",
+      <span class="k">"Resource"</span>: "*"
+    },
+    {
+      <span class="k">"Effect"</span>: "Allow",
+      <span class="k">"Action"</span>: [
+        "ecr:BatchCheckLayerAvailability", "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart", "ecr:CompleteLayerUpload",
+        "ecr:PutImage", "ecr:BatchGetImage"
+      ],
+      <span class="k">"Resource"</span>: "arn:aws:ecr:ap-south-1:&lt;ACCOUNT_ID&gt;:repository/ai-interview-dev-platform/frontend"
+    },
+    {
+      <span class="c">// only enough to build a kubeconfig for this one cluster</span>
+      <span class="k">"Effect"</span>: "Allow",
+      <span class="k">"Action"</span>: "eks:DescribeCluster",
+      <span class="k">"Resource"</span>: "arn:aws:eks:ap-south-1:&lt;ACCOUNT_ID&gt;:cluster/ai-interview-platform-eks"
+    }
+  ]
+}</pre>
+
+  <pre><span class="k">aws</span> iam create-role \
+  --role-name gh-deploy-frontend \
+  --assume-role-policy-document file://trust.json
+
+<span class="k">aws</span> iam put-role-policy \
+  --role-name gh-deploy-frontend \
+  --policy-name deploy-permissions \
+  --policy-document file://permissions.json</pre>
+
+  <div class="note">
+    <span class="tag">What is deliberately missing</span>
+    <p>
+      No <code>ecr:DeleteRepository</code>, no <code>iam:*</code>, no <code>ec2:*</code>, no
+      <code>eks:UpdateClusterConfig</code>, and no access to any other repository or cluster. If this
+      role were ever assumed by someone hostile, the worst they could do is push one image and read
+      one cluster's description.
+    </p>
+  </div>
+
+  <div class="note good">
+    <span class="tag">Checkpoint</span>
+    <p>
+      <code>aws iam get-role --role-name gh-deploy-frontend --query Role.Arn</code> returns the ARN.
+      Note it — this is the value for the <code>AWS_DEPLOY_ROLE_ARN</code> secret in phase 7.
+    </p>
+  </div>
+</section>
+
+<section id="p6">
+  <h2>Phase 6 &nbsp;Cluster access</h2>
+  <p class="srcref">The single most misunderstood step in EKS</p>
+
+  <p>
+    Your IAM role can now authenticate to <em>AWS</em>. That does not mean Kubernetes will let it do
+    anything. <strong>AWS IAM and Kubernetes RBAC are two separate authorization systems</strong>, and
+    a cluster has to be told about an IAM principal before it recognises it.
+  </p>
+
+  <figure class="plate">
+    <div class="scroll">
+      <svg viewBox="0 0 1080 320" role="img"
+           aria-label="A role with AdministratorAccess authenticates to AWS successfully and gets a token,
+           but EKS then looks it up in an access-entry list and refuses because there is no entry.
+           Adding an access entry plus an access policy is what grants cluster access.">
+        <defs>
+          <marker id="a1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#33484D"/>
+          </marker>
+          <marker id="a1b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#4FD1C5"/>
+          </marker>
+          <marker id="a1c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#E58179"/>
+          </marker>
+        </defs>
+
+        <rect class="box-a" x="24" y="120" width="190" height="66" rx="3"/>
+        <text class="lbl-s" x="119" y="145" text-anchor="middle">IAM role</text>
+        <text class="sub" x="119" y="163" text-anchor="middle">AdministratorAccess</text>
+        <text class="acc" x="119" y="180" text-anchor="middle">full AWS power</text>
+
+        <rect class="box-a" x="270" y="120" width="170" height="66" rx="3"/>
+        <text class="lbl-s" x="355" y="145" text-anchor="middle">AWS IAM</text>
+        <text class="sub" x="355" y="163" text-anchor="middle">authenticates ✓</text>
+        <text class="acc" x="355" y="180" text-anchor="middle">token issued</text>
+
+        <rect class="box" x="500" y="120" width="200" height="66" rx="3"/>
+        <text class="lbl-s" x="600" y="145" text-anchor="middle">EKS control plane</text>
+        <text class="sub" x="600" y="163" text-anchor="middle">"who is this?"</text>
+
+        <rect class="box-d" x="760" y="60" width="290" height="76" rx="3"/>
+        <text class="lbl-s" x="776" y="84">access-entry list</text>
+        <text class="sub" x="776" y="104">cluster creator &nbsp;·&nbsp; node role &nbsp;·&nbsp; AWS service role</text>
+        <text class="elab-d" x="776" y="124">your GitHub role is NOT here</text>
+
+        <rect class="box-a" x="760" y="196" width="290" height="82" rx="3"/>
+        <text class="lbl-s" x="776" y="220">create-access-entry +</text>
+        <text class="lbl-s" x="776" y="238">associate-access-policy</text>
+        <text class="sub" x="776" y="258">the missing link between</text>
+        <text class="sub" x="776" y="274">the two authorization systems</text>
+
+        <path class="edge-a" d="M214 153 H266" marker-end="url(#a1b)"/>
+        <path class="edge-a" d="M440 153 H496" marker-end="url(#a1b)"/>
+        <path class="edge-d" d="M700 153 H726 V98 H756" marker-end="url(#a1c)"/>
+        <text class="dng" x="712" y="140">no entry</text>
+        <text class="dng" x="816" y="164" text-anchor="middle">Unauthorized</text>
+        <path class="edge-a" d="M905 192 V172 V150 H756" marker-end="url(#a1b)" stroke-dasharray="4 3"/>
+        <text class="elab-a" x="940" y="186" text-anchor="middle">until you add it</text>
+
+        <text class="elab" x="540" y="300" text-anchor="middle">AdministratorAccess answers "what can you do in AWS?" — it says nothing about "who are you in Kubernetes?"</text>
+      </svg>
+    </div>
+    <figcaption>
+      <b>The guest list.</b> The role that <em>creates</em> a cluster is added automatically. Every
+      other principal &mdash; including a role with full AWS admin &mdash; must be written in by hand.
+    </figcaption>
+  </figure>
+
+  <span class="filename">On your machine — grant the deploy role access to one namespace only</span>
+  <pre><span class="k">export</span> ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+<span class="c"># 1. tell the cluster this IAM role maps to a Kubernetes identity</span>
+<span class="k">aws</span> eks create-access-entry \
+  --cluster-name $CLUSTER_NAME --region ap-south-1 \
+  --principal-arn arn:aws:iam::${ACCOUNT_ID}:role/gh-deploy-frontend \
+  --type STANDARD
+
+<span class="c"># 2. give that identity admin rights in ONE namespace only</span>
+<span class="k">aws</span> eks associate-access-policy \
+  --cluster-name $CLUSTER_NAME --region ap-south-1 \
+  --principal-arn arn:aws:iam::${ACCOUNT_ID}:role/gh-deploy-frontend \
+  --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy \
+  --access-scope type=namespace,namespaces=default</pre>
+
+  <p>
+    <code>type=namespace,namespaces=default</code> is the important part. The pipeline is an admin of
+    the <code>default</code> namespace and a nobody everywhere else — it cannot read secrets in
+    <code>kube-system</code>, and it cannot touch cluster-scoped objects at all.
+  </p>
+
+  <h3>Also add your own user, for kubectl</h3>
+  <p>If your CLI user is not the cluster creator, it needs an entry too:</p>
+  <pre><span class="k">aws</span> eks create-access-entry \
+  --cluster-name $CLUSTER_NAME --region ap-south-1 \
+  --principal-arn arn:aws:iam::${ACCOUNT_ID}:user/&lt;YOUR_IAM_USER&gt;
+
+<span class="k">aws</span> eks associate-access-policy \
+  --cluster-name $CLUSTER_NAME --region ap-south-1 \
+  --principal-arn arn:aws:iam::${ACCOUNT_ID}:user/&lt;YOUR_IAM_USER&gt; \
+  --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminPolicy \
+  --access-scope type=namespace,namespaces=default</pre>
+
+  <span class="filename">Checkpoint — the role must appear in this list</span>
+  <pre><span class="k">aws</span> eks list-access-entries --cluster-name $CLUSTER_NAME
+<span class="k">aws</span> eks list-associated-access-policies --cluster-name $CLUSTER_NAME \
+  --principal-arn arn:aws:iam::${ACCOUNT_ID}:role/gh-deploy-frontend</pre>
+
+  <h3>Access policies, from least to most</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Policy</th><th>Grants</th><th>Use it for</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">AmazonEKSViewPolicy</td><td>read only (get/list/watch)</td><td>a pipeline that only inspects</td></tr>
+        <tr><td class="mono">AmazonEKSEditPolicy</td><td>read + write workloads</td><td>a CI pipeline that deploys</td></tr>
+        <tr><td class="mono">AmazonEKSAdminPolicy</td><td>edit + RBAC &amp; quotas in a namespace</td><td>a deploy role that must also manage Roles</td></tr>
+        <tr><td class="mono">AmazonEKSClusterAdminPolicy</td><td>everything, cluster-wide</td><td>humans. Never a CI role.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="tag">You can stack them, each with its own scope</span>
+    <p>
+      Associating a second policy does not replace the first. Each keeps its own access scope, so a
+      common shape is read-only across the whole cluster plus write access in one namespace. Re-running
+      <code>associate-access-policy</code> for a policy you already have <em>updates its scope</em>
+      rather than duplicating it.
+    </p>
+  </div>
+</section>
+
+<section id="p7">
+  <h2>Phase 7 &nbsp;GitHub configuration</h2>
+  <p class="srcref">~5 minutes &middot; two secrets, one variable</p>
+
+  <p>
+    Everything the workflow needs, in one table. Note how little of it is sensitive.
+  </p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Where</th><th>Name</th><th>Value</th><th>Sensitive?</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Settings → Environments</td>
+          <td class="mono">production</td>
+          <td>Create it. Optionally add required reviewers for a manual approval gate.</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Env secret</td>
+          <td class="mono">AWS_DEPLOY_ROLE_ARN</td>
+          <td><code>arn:aws:iam::&lt;ACCOUNT_ID&gt;:role/gh-deploy-frontend</code></td>
+          <td>No &mdash; an ARN grants nothing by itself</td>
+        </tr>
+        <tr>
+          <td>Repo secret</td>
+          <td class="mono">SONAR_TOKEN</td>
+          <td>From SonarCloud → My Account → Security</td>
+          <td>Yes, for SonarCloud only</td>
+        </tr>
+        <tr>
+          <td>Repo variable</td>
+          <td class="mono">AWS_ROLE_ARN</td>
+          <td>Same ARN, if you prefer <code>vars.</code> over <code>secrets.</code></td>
+          <td>No</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="tag">Secrets vs variables</span>
+    <p>
+      A <strong>secret</strong> is encrypted and masked in logs. A <strong>variable</strong> is visible.
+      An ARN is an identifier, not a credential &mdash; putting it in a variable means you can read it
+      back when debugging, and the logs stay readable. Reserve secrets for actual secrets.
+    </p>
+  </div>
+
+  <h3>Match the workflow to your account</h3>
+  <p>Four values at the top of the workflow file, plus two in the Sonar properties:</p>
+
+  <span class="filename">.github/workflows/pipeline.yml</span>
+  <pre><span class="k">env</span>:
+  <span class="k">AWS_REGION</span>: ap-south-1
+  <span class="k">EKS_CLUSTER</span>: ai-interview-platform-eks
+  <span class="k">K8S_NAMESPACE</span>: default
+  <span class="k">ECR_REPO</span>: ai-interview-dev-platform</pre>
+
+  <span class="filename">sonar-project.properties</span>
+  <pre><span class="k">sonar.projectKey</span>=&lt;YOUR_ORG&gt;_&lt;YOUR_REPO&gt;
+<span class="k">sonar.organization</span>=&lt;YOUR_ORG&gt;
+<span class="k">sonar.sources</span>=src
+<span class="k">sonar.tests</span>=src/test
+<span class="k">sonar.javascript.lcov.reportPaths</span>=coverage/lcov.info</pre>
+
+  <div class="note warn">
+    <span class="tag">Permissions per job replace the workflow default</span>
+    <p>
+      The workflow starts at <code>contents: read</code>. If you add a <code>permissions:</code> block
+      to a job, it <em>replaces</em> the default entirely &mdash; so you must list every permission that
+      job needs, including <code>contents: read</code>. Forgetting that is why a job suddenly cannot
+      check out the repo.
+    </p>
+  </div>
+</section>
+
+<section id="p8">
+  <h2>Phase 8 &nbsp;SonarCloud</h2>
+  <p class="srcref">~10 minutes &middot; two settings that will otherwise cost you an hour</p>
+
+  <p>
+    SonarCloud tracks bugs, code smells, duplication and coverage over time, and comments on pull
+    requests. It is genuinely useful, and it has two setup traps that produce confusing errors.
+  </p>
+
+  <h3>8a — Create the organisation and import the project</h3>
+  <ol>
+    <li>Sign in at <code>sonarcloud.io</code> with GitHub.</li>
+    <li>Create or join an organisation. Its key is usually your GitHub username or org name.</li>
+    <li>Import your repository as a project.</li>
+    <li>Note the <strong>organisation key</strong> and the <strong>project key</strong>. For a GitHub import the project key is normally <code>&lt;org-key&gt;_&lt;repo-name&gt;</code>.</li>
+  </ol>
+
+  <p>The most reliable way to get the exact values is the product itself:</p>
+  <p>
+    <strong>Your project → Administration → Analysis Method → With GitHub Actions.</strong> That page
+    generates a snippet already populated with your own keys. Copy from there rather than guessing.
+  </p>
+
+  <h3>8b — Generate a token and store it</h3>
+  <p>
+    <strong>My Account → Security → Generate Token.</strong> Copy it once (it is shown only once) and
+    add it to GitHub as the <code>SONAR_TOKEN</code> repository secret.
+  </p>
+
+  <div class="note bad">
+    <span class="tag">Trap 1 — the properties file wins</span>
+    <p>
+      If you copied a tutorial's <code>sonar-project.properties</code> and it still points at the
+      tutorial author's organisation, the scanner will dutifully look for <em>their</em> project. The
+      error is:
+    </p>
+    <pre style="margin:0.6rem 0 0"><span class="x">ERROR Not authorized or project not found.</span> Please check the 'SONAR_TOKEN'
+environment variable, the 'sonar.projectKey' and 'sonar.organization' properties,
+or contact the project administrator to verify the token's permissions.
+A project with the same key may already exist in another organization.</pre>
+    <p>
+      That last sentence is the clue. Binding your project in the SonarCloud UI is not enough &mdash;
+      the properties file overrides it. Fix the two keys.
+    </p>
+  </div>
+
+  <div class="note bad">
+    <span class="tag">Trap 2 — Automatic Analysis blocks CI analysis</span>
+    <p>
+      When you import a GitHub repo, SonarCloud may switch <strong>Automatic Analysis</strong> on &mdash;
+      a mode where SonarCloud analyses your code itself, server-side, with no CI involved. Running both
+      at once is refused:
+    </p>
+    <pre style="margin:0.6rem 0 0"><span class="x">ERROR You are running CI analysis while Automatic Analysis is enabled.</span>
+Please consider disabling one or the other.</pre>
+    <p>
+      <strong>Turn Automatic Analysis off</strong>, keep CI analysis. Go to
+      <strong>Administration → Analysis Method</strong> and disable it.
+    </p>
+  </div>
+
+  <div class="note">
+    <span class="tag">Why CI analysis is the one you want</span>
+    <p>
+      Automatic Analysis cannot produce <strong>code coverage</strong>. Your Vite config generates an
+      lcov report and the properties file points at it &mdash; all of which Automatic Analysis silently
+      ignores. It also has no branch analysis, and no accessible logs, which is exactly what you need
+      when something goes wrong.
+    </p>
+  </div>
+
+  <h3>8c — Make it a real gate</h3>
+  <p>
+    By default SonarCloud reports and the workflow continues. To make a failed quality gate actually
+    fail the build, add the wait parameter to the scanner:
+  </p>
+  <pre><span class="c"># in sonar-project.properties</span>
+<span class="k">sonar.qualitygate.wait</span>=true
+<span class="k">sonar.qualitygate.timeout</span>=300</pre>
+
+  <div class="note warn">
+    <span class="tag">This blocks the job</span>
+    <p>
+      The scanner will poll SonarCloud until the quality gate resolves, up to the timeout. That is the
+      point &mdash; but it does add a minute or two to every run. Worth it once you trust your coverage
+      numbers; noisy before that.
+    </p>
+  </div>
+
+  <span class="filename">Checkpoint</span>
+  <p>
+    Push a trivial change and watch the <code>app</code> job. A green SonarQube Scan step with
+    <code>Load quality profiles (done)</code> and <code>Load active rules (done)</code> in the log
+    means it authenticated and analysed successfully.
+  </p>
+</section>
+
+<section id="p9">
+  <h2>Phase 9 &nbsp;First deploy</h2>
+  <p class="srcref">Run it manually first &mdash; never discover a missing secret during a push</p>
+
+  <p>
+    The workflow is triggered by a push, a pull request, or manually. For the first attempt, use the
+    manual trigger: it exercises the identical path, but on your schedule, and you can read the logs
+    without a commit in the way.
+  </p>
+
+  <p><strong>Actions → CI/CD Pipeline → Run workflow.</strong></p>
+
+  <figure class="plate extra-wide">
+    <div class="scroll">
+      <svg viewBox="0 0 1120 480" role="img"
+           aria-label="A push starts three parallel check jobs. When all three pass on main, the deploy job exchanges an OIDC token for temporary credentials,
+           scans and pushes the image to ECR, applies it to EKS, verifies with a curl pod, and rolls back automatically on failure.">
+        <defs>
+          <marker id="f1a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#33484D"/>
+          </marker>
+          <marker id="f1b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#4FD1C5"/>
+          </marker>
+          <marker id="f1c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#E58179"/>
+          </marker>
+        </defs>
+
+        <rect class="box" x="24" y="96" width="150" height="58" rx="3"/>
+        <text class="lbl" x="99" y="120" text-anchor="middle">Developer</text>
+        <text class="sub" x="99" y="137" text-anchor="middle">git push</text>
+
+        <rect class="box" x="244" y="96" width="170" height="58" rx="3"/>
+        <text class="lbl" x="329" y="120" text-anchor="middle">GitHub</text>
+        <text class="sub" x="329" y="137" text-anchor="middle">repo + secrets</text>
+
+        <path class="edge" d="M174 125 H236" marker-end="url(#f1a)"/>
+
+        <rect class="box" x="474" y="24" width="250" height="58" rx="3"/>
+        <text class="lbl" x="490" y="48">app</text>
+        <text class="sub" x="490" y="66">lint · test · build · Sonar</text>
+
+        <rect class="box" x="474" y="96" width="250" height="58" rx="3"/>
+        <text class="lbl" x="490" y="120">secrets</text>
+        <text class="sub" x="490" y="138">Gitleaks · full history</text>
+
+        <rect class="box" x="474" y="168" width="250" height="58" rx="3"/>
+        <text class="lbl" x="490" y="192">manifests</text>
+        <text class="sub" x="490" y="210">kubeconform −strict</text>
+
+        <path class="edge" d="M414 125 H444 V53 H466" marker-end="url(#f1a)"/>
+        <path class="edge" d="M414 125 H466" marker-end="url(#f1a)"/>
+        <path class="edge" d="M414 125 H444 V197 H466" marker-end="url(#f1a)"/>
+        <text class="elab" x="599" y="252" text-anchor="middle">three jobs in parallel — each can stop the run</text>
+
+        <path class="edge-a" d="M724 53 H759 V125 H786" marker-end="url(#f1b)"/>
+        <path class="edge-a" d="M724 125 H786" marker-end="url(#f1b)"/>
+        <path class="edge-a" d="M724 197 H759 V125 H786" marker-end="url(#f1b)"/>
+
+        <rect class="box-a" x="794" y="96" width="190" height="58" rx="3"/>
+        <text class="lbl" x="889" y="120" text-anchor="middle">deploy</text>
+        <text class="sub" x="889" y="137" text-anchor="middle">needs all three</text>
+        <text class="acc" x="889" y="84" text-anchor="middle">the gate</text>
+
+        <path class="zone" d="M794 154 L24 290"/>
+        <path class="zone" d="M984 154 L1096 290"/>
+        <rect class="zone" x="24" y="290" width="1072" height="170" rx="4"/>
+        <text class="zonelbl" x="44" y="312">INSIDE THE DEPLOY JOB</text>
+
+        <rect class="box-a" x="44" y="326" width="158" height="54" rx="3"/>
+        <text class="lbl-s" x="123" y="348" text-anchor="middle">OIDC token</text>
+        <text class="sub" x="123" y="365" text-anchor="middle">signed by GitHub</text>
+
+        <rect class="box-a" x="250" y="326" width="158" height="54" rx="3"/>
+        <text class="lbl-s" x="329" y="348" text-anchor="middle">AWS STS</text>
+        <text class="sub" x="329" y="365" text-anchor="middle">1-hour creds</text>
+
+        <rect class="box" x="456" y="326" width="158" height="54" rx="3"/>
+        <text class="lbl-s" x="535" y="348" text-anchor="middle">Trivy</text>
+        <text class="sub" x="535" y="365" text-anchor="middle">CRITICAL = stop</text>
+
+        <rect class="box" x="662" y="326" width="158" height="54" rx="3"/>
+        <text class="lbl-s" x="741" y="348" text-anchor="middle">ECR</text>
+        <text class="sub" x="741" y="365" text-anchor="middle">push :&lt;commit sha&gt;</text>
+
+        <rect class="box" x="868" y="326" width="190" height="54" rx="3"/>
+        <text class="lbl-s" x="963" y="348" text-anchor="middle">EKS</text>
+        <text class="sub" x="963" y="365" text-anchor="middle">kubectl apply</text>
+
+        <path class="edge-a" d="M202 353 H242" marker-end="url(#f1b)"/>
+        <path class="edge-a" d="M408 353 H448" marker-end="url(#f1b)"/>
+        <path class="edge" d="M614 353 H654" marker-end="url(#f1a)"/>
+        <path class="edge" d="M820 353 H860" marker-end="url(#f1a)"/>
+
+        <rect class="box-a" x="662" y="404" width="158" height="42" rx="3"/>
+        <text class="lbl-s" x="741" y="424" text-anchor="middle">verify</text>
+        <text class="sub" x="741" y="440" text-anchor="middle">curl pod → 200</text>
+
+        <rect class="box-d" x="868" y="404" width="190" height="42" rx="3"/>
+        <text class="lbl-s" x="963" y="424" text-anchor="middle">rollout undo</text>
+        <text class="sub" x="963" y="440" text-anchor="middle">automatic on failure</text>
+
+        <path class="edge" d="M963 380 V396 H741 V400" marker-end="url(#f1a)"/>
+        <path class="edge-d" d="M820 425 H860" marker-end="url(#f1c)"/>
+      </svg>
+    </div>
+    <figcaption>
+      <b>Four jobs, one gate.</b> A pull request runs the top band only and never reaches AWS. The
+      deploy job is drawn expanded because that is where every credential decision happens: the token
+      is obtained, exchanged, used, and discarded inside those five boxes.
+    </figcaption>
+  </figure>
+
+  <h3>What the three check jobs do</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Job</th><th>Runs</th><th>Fails the run when</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">app</td><td><code>npm ci</code> → lint → test:coverage → build → Sonar scan</td><td>any warning (<code>--max-warnings 0</code>), any failing test, or a failed quality gate</td></tr>
+        <tr><td class="mono">secrets</td><td>Gitleaks over the full git history</td><td>it finds anything shaped like a credential</td></tr>
+        <tr><td class="mono">manifests</td><td>kubeconform <code>-strict</code> on <code>k8s/*.yaml</code></td><td>an unknown or misspelled field in a manifest</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Six gates, and why each has teeth</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Gate</th><th>Catches</th><th>How it actually blocks</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">Gitleaks</td><td>secrets committed anywhere in history</td><td>non-zero exit from the action</td></tr>
+        <tr><td class="mono">ESLint</td><td>bad patterns, unused code, broken hook rules</td><td><code>--max-warnings 0</code></td></tr>
+        <tr><td class="mono">Vitest</td><td>behaviour regressions</td><td>any failing test</td></tr>
+        <tr><td class="mono">SonarCloud</td><td>bugs, smells, duplication, coverage trend</td><td>quality gate (only if <code>qualitygate.wait</code> is set)</td></tr>
+        <tr><td class="mono">kubeconform</td><td>invalid Kubernetes YAML</td><td><code>-strict</code> rejects unknown fields</td></tr>
+        <tr><td class="mono">Trivy</td><td>CRITICAL CVEs in the built image</td><td><code>exit-code: '1'</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note warn">
+    <span class="tag">A scanner without an exit code is decoration</span>
+    <p>
+      Trivy prints a beautiful table and the step goes green unless you set
+      <code>exit-code: '1'</code>. Same for SonarCloud's quality gate. The exit code is the entire
+      difference between a report and a gate &mdash; check for it whenever you add a scanner.
+    </p>
+  </div>
+
+  <div class="note good">
+    <span class="tag">Checkpoint</span>
+    <p>
+      All four jobs green, and the Actions summary shows the commit, image tag, cluster and namespace.
+      If the deploy job never started, look at its <code>if:</code> condition &mdash; a
+      <code>refs/heads/master</code> check on a <code>main</code> repository skips silently.
+    </p>
+  </div>
+</section>
+
+<section id="p10">
+  <h2>Phase 10 &nbsp;Verify it runs</h2>
+  <p class="srcref">Free &middot; nothing in AWS is created</p>
+
+  <p>
+    The pipeline deployed a Deployment and a Service. The Service is <code>ClusterIP</code> &mdash; a
+    virtual address that exists only inside the cluster's network. Nothing outside can reach it yet.
+  </p>
+
+  <span class="filename">Point kubectl at the cluster, then look</span>
+  <pre><span class="k">aws</span> eks update-kubeconfig --region ap-south-1 --name $CLUSTER_NAME
+
+<span class="k">kubectl</span> get pods -n default -o wide
+<span class="k">kubectl</span> get deploy,svc -n default</pre>
+
+  <div class="note warn">
+    <span class="tag">Run that as two separate commands</span>
+    <p>
+      Pasting both on one line without a newline between them merges them &mdash; the cluster name
+      becomes <code>…-ekskubectl</code> and you get a confusing "not found". The kubeconfig is then
+      never written, and kubectl falls back to its built-in default of
+      <code>http://localhost:8080</code>.
+    </p>
+    <p>
+      <code>dial tcp 127.0.0.1:8080: connection refused</code> means <strong>no kubeconfig</strong>,
+      not "the cluster is down".
+    </p>
+  </div>
+
+  <h3>Reach it with a port-forward</h3>
+  <p>
+    This tunnels through the API server you are already authenticated to. No load balancer, no
+    security group change, no public IP, no cost.
+  </p>
+  <pre><span class="k">kubectl</span> port-forward -n default svc/frontend 8080:80
+<span class="c"># leave it running, then open http://localhost:8080</span></pre>
+
+  <figure class="plate">
+    <div class="scroll">
+      <svg viewBox="0 0 1060 220" role="img"
+           aria-label="Browser to kubectl on localhost 8080, over an authenticated HTTPS connection to the EKS API server,
+           which tunnels through the kubelet on the node into the pod's namespace.">
+        <defs>
+          <marker id="pf" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#4FD1C5"/>
+          </marker>
+        </defs>
+        <rect class="box" x="20" y="80" width="150" height="58" rx="3"/>
+        <text class="lbl-s" x="95" y="104" text-anchor="middle">Browser</text>
+        <text class="sub" x="95" y="122" text-anchor="middle">localhost:8080</text>
+
+        <rect class="box-a" x="220" y="80" width="170" height="58" rx="3"/>
+        <text class="lbl-s" x="305" y="104" text-anchor="middle">kubectl process</text>
+        <text class="sub" x="305" y="122" text-anchor="middle">listening on :8080</text>
+
+        <rect class="box" x="440" y="80" width="180" height="58" rx="3"/>
+        <text class="lbl-s" x="530" y="104" text-anchor="middle">EKS API server</text>
+        <text class="sub" x="530" y="122" text-anchor="middle">public endpoint</text>
+
+        <rect class="box" x="670" y="80" width="170" height="58" rx="3"/>
+        <text class="lbl-s" x="755" y="104" text-anchor="middle">kubelet</text>
+        <text class="sub" x="755" y="122" text-anchor="middle">on the node</text>
+
+        <rect class="box-a" x="890" y="80" width="150" height="58" rx="3"/>
+        <text class="lbl-s" x="965" y="104" text-anchor="middle">nginx pod</text>
+        <text class="sub" x="965" y="122" text-anchor="middle">:3000</text>
+
+        <path class="edge-a" d="M170 109 H214" marker-end="url(#pf)"/>
+        <path class="edge-a" d="M390 109 H434" marker-end="url(#pf)"/>
+        <text class="elab" x="412" y="100" text-anchor="middle">HTTPS</text>
+        <path class="edge" d="M620 109 H664" marker-end="url(#pf)"/>
+        <path class="edge" d="M840 109 H884" marker-end="url(#pf)"/>
+
+        <text class="elab" x="530" y="180" text-anchor="middle">the API server opens the tunnel — your laptop never needs a route into the VPC</text>
+        <text class="elab-a" x="530" y="202" text-anchor="middle">works only while the command runs; Ctrl+C closes it</text>
+      </svg>
+    </div>
+    <figcaption>
+      <b>Why port-forward is free and temporary.</b> The traffic rides the connection you already
+      authenticated. Nothing is created in AWS, and nothing is left behind when you stop it.
+    </figcaption>
+  </figure>
+
+  <h3>What you should see</h3>
+  <p>
+    The app's login page. The seed-account shortcuts at the bottom are controlled by
+    <code>APP_ENV</code> from the ConfigMap — if they are visible, the whole
+    ConfigMap → env var → entrypoint → browser chain works.
+  </p>
+
+  <span class="filename">Prove that chain explicitly</span>
+  <pre><span class="k">curl</span> -s http://localhost:8080/runtime-config.js
+<span class="c">// Generated at container start by docker-entrypoint.sh. Do not edit.</span>
+<span class="c">// window.__APP_CONFIG__ = { apiBaseUrl: "", appEnv: "dev" };</span></pre>
+
+  <div class="note warn">
+    <span class="tag">Login will fail — and that is expected</span>
+    <p>
+      The frontend is configured same-origin (<code>apiBaseUrl: ""</code>) and there is no
+      <code>/api</code> route yet, so nginx's SPA fallback answers API calls with
+      <code>index.html</code> and HTTP 200. The app receives HTML where it expected JSON and reports
+      "the server returned a web page instead of data".
+    </p>
+    <p>
+      That is the frontend working correctly against a backend that has not been deployed. It is a
+      phase boundary, not a bug.
+    </p>
+  </div>
+</section>
+
+<section id="p11">
+  <h2>Phase 11 &nbsp;ALB Ingress controller</h2>
+  <p class="srcref">Steps 11a–11c are per-cluster &middot; ~10 minutes &middot; nothing billable yet</p>
+
+  <p>
+    To get a public URL, something has to create a load balancer on your behalf. The
+    <strong>AWS Load Balancer Controller</strong> is a pod inside your cluster that watches for
+    <code>Ingress</code> objects and builds an ALB in response.
+  </p>
+
+  <div class="note">
+    <span class="tag">Not to be confused with</span>
+    <p>
+      There is an older controller called <strong>aws-alb-ingress-controller</strong>. It is
+      deprecated. The one you want is <strong>aws-load-balancer-controller</strong>, a Kubernetes
+      SIG project. Tutorials mix them up constantly.
+    </p>
+  </div>
+
+  <h3>11a — The controller needs an AWS identity (IRSA)</h3>
+  <p>
+    The controller pod calls EC2, ELB and ACM APIs. It gets permission through
+    <strong>IRSA &mdash; IAM Roles for Service Accounts</strong>, which needs the OIDC provider you
+    created back in phase 3 with <code>--with-oidc</code>.
+  </p>
+
+  <span class="filename">Checkpoint first — the issuer must already be registered in IAM</span>
+  <pre><span class="k">aws</span> eks describe-cluster --name $CLUSTER_NAME --region ap-south-1 \
+  --query "cluster.identity.oidc.issuer" --output text
+
+<span class="k">aws</span> iam list-open-id-connect-providers
+
+<span class="c"># one ARN must end with the same id as the issuer URL:</span>
+<span class="c"># issuer …/id/8CF248A9F796CD8E2FAE8DEB0B673B37</span>
+<span class="c"># arn   …:oidc-provider/oidc.eks.ap-south-1.amazonaws.com/id/8CF248A9F796CD8E2FAE8DEB0B673B37</span></pre>
+
+  <p>If it is missing, register it now:</p>
+  <pre><span class="k">eksctl</span> utils associate-iam-oidc-provider \
+  --cluster $CLUSTER_NAME --region ap-south-1 --approve</pre>
+
+  <h3>11b — Create the controller's IAM policy</h3>
+  <p>
+    AWS publishes the exact policy the controller needs. Download it &mdash; do not hand-write it
+    &mdash; and pin it to the same version as the chart you are about to install.
+  </p>
+
+  <span class="filename">Find the current version, then download the matching policy</span>
+  <pre><span class="k">helm</span> repo add eks https://aws.github.io/eks-charts
+<span class="k">helm</span> repo update
+<span class="k">helm</span> search repo eks/aws-load-balancer-controller --versions | head -3
+<span class="c"># read the APP VERSION column</span>
+
+<span class="k">export</span> LBC_VERSION=v3.5.0
+
+<span class="k">curl</span> -sL -o alb-iam-policy.json \
+  "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/${LBC_VERSION}/docs/install/iam_policy.json"
+
+<span class="k">head</span> -3 alb-iam-policy.json      <span class="c"># MUST print JSON, not HTML</span>
+
+<span class="k">aws</span> iam create-policy \
+  --policy-name AWSLoadBalancerControllerIAMPolicy \
+  --policy-document file://alb-iam-policy.json</pre>
+
+  <div class="note bad">
+    <span class="tag">curl -sL is silent, and that is dangerous here</span>
+    <p>
+      A wrong version tag returns GitHub's <strong>404 page</strong>, which <code>-o</code> saves
+      happily as <code>alb-iam-policy.json</code>. <code>create-policy</code> then fails complaining
+      about a malformed document and never mentions the URL. The <code>head -3</code> is your only
+      warning.
+    </p>
+  </div>
+
+  <h3>11c — Create the role and ServiceAccount in one command</h3>
+  <pre><span class="k">export</span> ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+<span class="k">eksctl</span> create iamserviceaccount \
+  --cluster $CLUSTER_NAME \
+  --region ap-south-1 \
+  --namespace kube-system \
+  --name aws-load-balancer-controller \
+  --attach-policy-arn "arn:aws:iam::${ACCOUNT_ID}:policy/AWSLoadBalancerControllerIAMPolicy" \
+  --override-existing-serviceaccounts \
+  --approve</pre>
+
+  <p>That one command creates three things across two systems:</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Where</th><th>What</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td>IAM</td><td>a role</td><td>what the pod will become</td></tr>
+        <tr><td>IAM</td><td>a trust policy on that role</td><td>names <em>exactly</em> <code>system:serviceaccount:kube-system:aws-load-balancer-controller</code> — the "who may assume me" half</td></tr>
+        <tr><td>Kubernetes</td><td>a ServiceAccount with an annotation</td><td><code>eks.amazonaws.com/role-arn</code> — the reference that makes the pod eligible</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <span class="filename">Checkpoint — this MUST print an ARN, not a blank line</span>
+  <pre><span class="k">kubectl</span> get sa aws-load-balancer-controller -n kube-system \
+  -o jsonpath='{.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}'</pre>
+
+  <div class="note bad">
+    <span class="tag">A blank line here means stop</span>
+    <p>
+      The ServiceAccount exists but carries no role reference. The controller will start, look
+      completely healthy, and fail every single AWS call &mdash; which reads like a bug in the
+      controller rather than a missing annotation. Fix it before continuing.
+    </p>
+  </div>
+
+  <h3>11d — Install the controller</h3>
+  <pre><span class="k">helm</span> upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=$CLUSTER_NAME \
+  --set region=ap-south-1 \
+  --set vpcId=$VPC \
+  --set serviceAccount.create=<span class="w">false</span> \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --wait</pre>
+
+  <div class="note bad">
+    <span class="tag">serviceAccount.create=false is the flag that matters</span>
+    <p>
+      You made the ServiceAccount in 11c, with its annotation. Let Helm create its own and it will have
+      no annotation &mdash; a controller with no AWS identity, failing every call, reporting nothing
+      useful.
+    </p>
+  </div>
+
+  <span class="filename">Checkpoint — 2 pods Running, and an IngressClass named alb</span>
+  <pre><span class="k">kubectl</span> get pods -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller
+<span class="k">kubectl</span> get ingressclass</pre>
+
+  <h3>See IRSA actually working</h3>
+  <pre><span class="k">kubectl</span> get pod -n kube-system -l app.kubernetes.io/name=aws-load-balancer-controller \
+  -o jsonpath='{range .items[0].spec.containers[0].env[*]}{.name}={.value}{"\n"}{end}'</pre>
+
+  <p>You will see, among others:</p>
+  <pre><span class="k">AWS_ROLE_ARN</span>=arn:aws:iam::…:role/eksctl-…-addon-iamser-Role1-…
+<span class="k">AWS_WEB_IDENTITY_TOKEN_FILE</span>=/var/run/secrets/eks.amazonaws.com/serviceaccount/token</pre>
+
+  <p>
+    Nothing in the Helm chart sets those. A <strong>mutating webhook</strong> injected them, because of
+    the annotation you just verified. That is the whole mechanism, visible in one command.
+  </p>
+
+  <div class="note warn">
+    <span class="tag">Two things that look broken and are not</span>
+    <p>
+      <code>kubectl exec … -- env</code> fails with <em>executable file not found</em>. The controller
+      image is <strong>distroless</strong> — no shell, no <code>env</code> binary. Read the pod spec
+      instead, as above.
+    </p>
+    <p>
+      The startup log says <em>Disabling ALBGatewayAPI: missing required CRDs</em>. Expected — that is
+      the optional Gateway API feature standing down. Ingress support is unaffected.
+    </p>
+  </div>
+</section>
+
+<section id="p12">
+  <h2>Phase 12 &nbsp;Public URL</h2>
+  <p class="srcref">One YAML file &middot; the only phase you repeat for each app</p>
+
+  <p>
+    Everything so far was plumbing. This is the object that actually asks for a load balancer.
+  </p>
+
+  <span class="filename">k8s/alb-ingress.yml</span>
+  <pre><span class="k">apiVersion</span>: networking.k8s.io/v1
+<span class="k">kind</span>: Ingress
+<span class="k">metadata</span>:
+  <span class="k">name</span>: frontend
+  <span class="k">annotations</span>:
+    <span class="c"># internet-facing = a public ALB. Use "internal" for a private one,</span>
+    <span class="c"># which is what the internal-elb subnet tag from phase 2 is for.</span>
+    alb.ingress.kubernetes.io/scheme: internet-facing
+
+    <span class="c"># ip, not instance: pods hold real VPC addresses, so the ALB reaches</span>
+    <span class="c"># a pod directly instead of hopping through a NodePort on the host.</span>
+    alb.ingress.kubernetes.io/target-type: ip
+
+    <span class="c"># the path the ALB polls to decide a pod is healthy — a cheap</span>
+    <span class="c"># endpoint, deliberately not the homepage</span>
+    alb.ingress.kubernetes.io/healthcheck-path: /healthz
+<span class="k">spec</span>:
+  <span class="k">ingressClassName</span>: alb
+  <span class="k">rules</span>:
+    - <span class="k">http</span>:
+        <span class="k">paths</span>:
+          - <span class="k">path</span>: /
+            <span class="k">pathType</span>: Prefix
+            <span class="k">backend</span>:
+              <span class="k">service</span>:
+                <span class="k">name</span>: frontend
+                <span class="k">port</span>:
+                  <span class="k">number</span>: 80</pre>
+
+  <pre><span class="k">kubectl</span> apply -f k8s/alb-ingress.yml -n default</pre>
+
+  <div class="note bad">
+    <span class="tag">Every Service named in the rules must already exist</span>
+    <p>
+      The controller resolves all of them when it builds its plan. One missing Service fails the whole
+      thing &mdash; you get <em>no</em> load balancer at all, not a partial one.
+    </p>
+    <p>
+      This matters for the next phase of this project: the app has no <code>/api</code> backend yet, so
+      keep the Ingress to a single <code>/</code> rule. Adding an <code>/api → middleware</code> path
+      before that Service exists will silently produce nothing.
+    </p>
+  </div>
+
+  <h3>Wait — twice</h3>
+  <pre><span class="k">kubectl</span> get ingress -n default -w</pre>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Wait</th><th>Duration</th><th>What is happening</th></tr></thead>
+      <tbody>
+        <tr><td>First</td><td>2–3 min</td><td><code>ADDRESS</code> goes from empty to an <code>…elb.amazonaws.com</code> hostname. AWS is provisioning the ALB.</td></tr>
+        <tr><td>Second</td><td>1–2 min</td><td>DNS propagates and the target passes its first health check. <strong>Until this finishes, curl fails even though the address exists.</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <span class="filename">Confirm — after both waits</span>
+  <pre><span class="k">export</span> ADDR=$(kubectl get ingress frontend -n default \
+  -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+<span class="k">echo</span> "http://$ADDR"
+
+<span class="c"># -sS, not -s: the capital S shows WHY it failed. -s alone hides the error.</span>
+<span class="k">curl</span> -sS -o /dev/null -w 'HTTP=%{http_code}\n' "http://$ADDR/"</pre>
+
+  <div class="note">
+    <span class="tag">Reading the exit codes</span>
+    <p>
+      <code>200</code> = working. <code>000</code> = could not connect at all (usually still
+      provisioning, or DNS not yet resolved). <code>503</code> = the ALB exists but no target is
+      healthy &mdash; check your <code>healthcheck-path</code>.
+    </p>
+  </div>
+
+  <figure class="plate">
+    <div class="scroll">
+      <svg viewBox="0 0 1080 290" role="img"
+           aria-label="Traffic path: browser to internet-facing ALB in two public subnets, forwarding by IP to a pod at 10.0.12.x in a private subnet.
+           The subnet tag kubernetes.io/role/elb is what makes the public subnets discoverable.">
+        <defs>
+          <marker id="tp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#4FD1C5"/>
+          </marker>
+        </defs>
+
+        <rect class="box" x="20" y="106" width="140" height="56" rx="3"/>
+        <text class="lbl-s" x="90" y="130" text-anchor="middle">Browser</text>
+        <text class="sub" x="90" y="147" text-anchor="middle">the internet</text>
+
+        <rect class="box-a" x="240" y="96" width="240" height="76" rx="3"/>
+        <text class="lbl-s" x="360" y="122" text-anchor="middle">Application Load Balancer</text>
+        <text class="sub" x="360" y="142" text-anchor="middle">internet-facing · 2 AZs</text>
+        <text class="sub" x="360" y="160" text-anchor="middle">ENIs in 10.0.1.x / 10.0.2.x</text>
+
+        <rect class="box-a" x="580" y="96" width="220" height="76" rx="3"/>
+        <text class="lbl-s" x="690" y="122" text-anchor="middle">nginx pod</text>
+        <text class="sub" x="690" y="142" text-anchor="middle">10.0.12.x · port 3000</text>
+        <text class="sub" x="690" y="160" text-anchor="middle">PRIVATE subnet</text>
+
+        <rect class="box" x="860" y="96" width="190" height="76" rx="3"/>
+        <text class="lbl-s" x="955" y="122" text-anchor="middle">Service frontend</text>
+        <text class="sub" x="955" y="142" text-anchor="middle">ClusterIP · port 80</text>
+        <text class="sub" x="955" y="160" text-anchor="middle">selector: app=frontend</text>
+
+        <path class="edge-a" d="M160 134 H236" marker-end="url(#tp)"/>
+        <text class="elab-a" x="198" y="126" text-anchor="middle">HTTP 80</text>
+
+        <path class="edge-a" d="M480 134 H576" marker-end="url(#tp)"/>
+        <text class="elab-a" x="528" y="126" text-anchor="middle">target-type: ip</text>
+
+        <path class="edge" d="M800 134 H856" marker-end="url(#tp)" stroke-dasharray="4 3"/>
+        <text class="elab" x="828" y="126" text-anchor="middle">by label</text>
+
+        <rect class="box-d" x="240" y="212" width="560" height="52" rx="3"/>
+        <text class="lbl-s" x="520" y="234" text-anchor="middle">kubernetes.io/role/elb = 1 &nbsp;on both public subnets</text>
+        <text class="elab-d" x="520" y="254" text-anchor="middle">this tag alone is how the controller found them — no command names a subnet</text>
+
+        <path class="edge-d" d="M360 208 V180" marker-end="url(#tp)"/>
+      </svg>
+    </div>
+    <figcaption>
+      <b>Two subnet tiers, one hop.</b> The ALB's ENIs get addresses from the <em>public</em> subnets;
+      the pod it forwards to has an address from a <em>private</em> one. That is only possible because
+      the VPC CNI gives every pod a real address from the subnet CIDR.
+    </figcaption>
+  </figure>
+
+  <div class="note good">
+    <span class="tag">What a 200 here actually proves</span>
+    <p>
+      It confirms the entire chain at once: the subnet tags were right, the controller discovered the
+      subnets by tag alone, built an ALB across <strong>two different AZs</strong>, registered the pod's
+      private IP as a target, the health check passed, and the security group allows port 80 from the
+      internet. Every one of those has to be true for a <code>200</code>.
+    </p>
+  </div>
+
+  <h3>Where to verify it in the console</h3>
+  <p>
+    <strong>EC2 → Load Balancing → Load Balancers</strong> (confirm you are in the right region — ALBs
+    are regional). Open your load balancer and look at the
+    <strong>Network mapping</strong> tab: two Availability Zones, each with one of your public
+    subnets. Then <strong>EC2 → Target Groups</strong> → your target group → <strong>Targets</strong>:
+    the pod's private IP, marked <code>healthy</code>.
+  </p>
+
+  <div class="note warn">
+    <span class="tag">Cost from this moment</span>
+    <p>
+      ~$0.0225/hr ≈ <strong>₹1,400/month</strong>, plus per-request LCU charges. Fine for an afternoon.
+      Expensive to forget. And the ALB lives exactly as long as the Ingress does — which is why the
+      teardown section starts by deleting the Ingress.
+    </p>
+  </div>
+</section>
+
+<!-- ======================================================= TEARDOWN -->
+<section id="teardown">
+  <h2>Phase 13 &nbsp;Teardown</h2>
+  <p class="srcref">Four steps, fixed order, ~15 minutes</p>
+
+  <figure class="plate">
+    <div class="scroll">
+      <svg viewBox="0 0 1080 300" role="img"
+           aria-label="Teardown order: delete the Ingress first to remove the ALB, then the Helm release, then the service account stack,
+           then the cluster, then terraform destroy for the VPC. Reversing the last two leaves the VPC undeletable.">
+        <defs>
+          <marker id="td" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 1l9 4-9 4z" fill="#4FD1C5"/>
+          </marker>
+        </defs>
+
+        <rect class="box-a" x="20" y="60" width="180" height="70" rx="3"/>
+        <text class="lbl-s" x="110" y="84" text-anchor="middle">1 · delete Ingress</text>
+        <text class="sub" x="110" y="104" text-anchor="middle">this removes the ALB</text>
+        <text class="acc" x="110" y="122" text-anchor="middle">saves ₹1,400/mo</text>
+
+        <rect class="box-a" x="230" y="60" width="180" height="70" rx="3"/>
+        <text class="lbl-s" x="320" y="84" text-anchor="middle">2 · helm uninstall</text>
+        <text class="sub" x="320" y="104" text-anchor="middle">the controller</text>
+
+        <rect class="box-a" x="440" y="60" width="190" height="70" rx="3"/>
+        <text class="lbl-s" x="535" y="84" text-anchor="middle">3 · eksctl delete</text>
+        <text class="lbl-s" x="535" y="100" text-anchor="middle">iamserviceaccount</text>
+        <text class="sub" x="535" y="120" text-anchor="middle">the CFN stack</text>
+
+        <rect class="box-a" x="660" y="60" width="190" height="70" rx="3"/>
+        <text class="lbl-s" x="755" y="84" text-anchor="middle">4 · eksctl delete</text>
+        <text class="lbl-s" x="755" y="100" text-anchor="middle">cluster</text>
+        <text class="acc" x="755" y="120" text-anchor="middle">saves ₹10,200/mo</text>
+
+        <rect class="box-a" x="880" y="60" width="180" height="70" rx="3"/>
+        <text class="lbl-s" x="970" y="84" text-anchor="middle">5 · terraform</text>
+        <text class="lbl-s" x="970" y="100" text-anchor="middle">destroy</text>
+        <text class="acc" x="970" y="120" text-anchor="middle">saves ₹3,800/mo</text>
+
+        <path class="edge-a" d="M200 95 H226" marker-end="url(#td)"/>
+        <path class="edge-a" d="M410 95 H436" marker-end="url(#td)"/>
+        <path class="edge-a" d="M630 95 H656" marker-end="url(#td)"/>
+        <path class="edge-a" d="M850 95 H876" marker-end="url(#td)"/>
+
+        <rect class="box-d" x="20" y="180" width="1040" height="96" rx="3"/>
+        <text class="lbl-s" x="540" y="206" text-anchor="middle">Two ordering rules that cost you an hour each if you break them</text>
+        <text class="elab-d" x="540" y="232" text-anchor="middle">Delete the Ingress BEFORE uninstalling the controller — otherwise the ALB is orphaned and keeps billing, invisible.</text>
+        <text class="elab-d" x="540" y="256" text-anchor="middle">Delete the CLUSTER before terraform destroy — otherwise the VPC destroy fails with DependencyViolation.</text>
+      </svg>
+    </div>
+    <figcaption>
+      <b>Reverse order of creation, with one extra rule.</b> The Ingress has to go first even though it
+      was created last, because the thing that deletes the ALB is the controller you are about to
+      uninstall.
+    </figcaption>
+  </figure>
+
+  <ol class="phases">
+    <li class="phase">
+      <div class="n">01</div>
+      <div>
+        <h3>Delete the Ingress</h3>
+        <p class="meta">this is what deletes the load balancer</p>
+        <pre><span class="k">kubectl</span> delete ingress frontend -n default
+
+<span class="c"># verify it is actually gone from AWS before continuing</span>
+<span class="k">aws</span> elbv2 describe-load-balancers --region ap-south-1 \
+  --query "LoadBalancers[].LoadBalancerName" --output text
+<span class="c"># expect: empty</span></pre>
+        <div class="note">
+          <span class="tag">Why the verify matters</span>
+          <p>
+            Deletion is asynchronous. The ALB takes a minute or two to actually disappear. If you skip
+            the check and move on, you will not notice an orphaned load balancer until the bill.
+          </p>
+        </div>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="n">02</div>
+      <div>
+        <h3>Uninstall the controller</h3>
+        <pre><span class="k">helm</span> uninstall aws-load-balancer-controller -n kube-system</pre>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="n">03</div>
+      <div>
+        <h3>Delete the service account stack</h3>
+        <p class="meta">eksctl builds this as CloudFormation, so it needs its own delete</p>
+        <pre><span class="k">eksctl</span> delete iamserviceaccount \
+  --cluster $CLUSTER_NAME --region ap-south-1 \
+  --namespace kube-system --name aws-load-balancer-controller</pre>
+        <div class="note warn">
+          <span class="tag">Leave the IAM policy</span>
+          <p>
+            <code>AWSLoadBalancerControllerIAMPolicy</code> is account-wide, shared, and free. Do not
+            delete it &mdash; the next cluster will reuse it and you will save a step.
+          </p>
+        </div>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="n">04</div>
+      <div>
+        <h3>Delete the EKS cluster</h3>
+        <p class="meta">~8 minutes &middot; the big saving</p>
+        <pre><span class="k">eksctl</span> delete cluster --name $CLUSTER_NAME --region ap-south-1 --wait</pre>
+        <p>
+          If the node drain hangs (it can, if the nodes never fully joined), retry with:
+        </p>
+        <pre><span class="k">eksctl</span> delete cluster --name $CLUSTER_NAME --region ap-south-1 \
+  --wait --disable-nodegroup-eviction</pre>
+
+        <span class="filename">Checkpoint — all four must be empty</span>
+        <pre><span class="k">aws</span> eks list-clusters --region ap-south-1
+<span class="k">aws</span> cloudformation describe-stacks \
+  --query "Stacks[?contains(StackName,'eksctl')].StackName"
+<span class="k">aws</span> ec2 describe-security-groups --filters "Name=vpc-id,Values=$VPC" \
+  --query "SecurityGroups[].GroupName" --output table      <span class="c"># only 'default'</span>
+<span class="k">aws</span> iam list-roles --query "Roles[?contains(RoleName,'eksctl')].RoleName"</pre>
+      </div>
+    </li>
+
+    <li class="phase">
+      <div class="n">05</div>
+      <div>
+        <h3>Destroy the VPC</h3>
+        <pre><span class="k">cd</span> Terraform
+<span class="k">terraform</span> destroy      <span class="c"># expect: 14 to destroy</span></pre>
+        <p>~4 minutes. The NAT gateway is the slowest part.</p>
+
+        <span class="filename">Checkpoint</span>
+        <pre><span class="k">aws</span> ec2 describe-vpcs        --query "Vpcs[].[VpcId,IsDefault]" --output table
+<span class="k">aws</span> ec2 describe-nat-gateways --query "NatGateways[].State"     --output table
+<span class="k">aws</span> ec2 describe-addresses    --query "Addresses[].PublicIp"     --output table</pre>
+        <p>Expect: only the default VPC, no NAT, no elastic IPs.</p>
+      </div>
+    </li>
+  </ol>
+
+  <h3>Keep these</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Resource</th><th>Why keep it</th><th>Cost</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">ECR repository + images</td><td>Makes the next rebuild faster, and the pipeline needs no changes</td><td>~₹0 (free tier)</td></tr>
+        <tr><td class="mono">AWSLoadBalancerControllerIAMPolicy</td><td>Account-wide, shared, reusable</td><td>₹0</td></tr>
+        <tr><td class="mono">gh-deploy-frontend IAM role</td><td>The pipeline is configured against its ARN</td><td>₹0</td></tr>
+        <tr><td class="mono">GitHub OIDC provider</td><td>One per account, not per repo</td><td>₹0</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note good">
+    <span class="tag">Final state</span>
+    <p>
+      Everything reproducible is destroyed; everything reusable is kept. A full rebuild is
+      <code>terraform apply</code> → tag subnets → <code>eksctl create cluster</code> → add access
+      entries → push. About 25 minutes, and the two "manual" steps are the ones worth automating next.
+    </p>
+  </div>
+</section>
+
+<!-- ======================================================= TROUBLE -->
+<section id="trouble">
+  <h2>When it breaks</h2>
+  <p class="srcref">Every failure in this runbook, with its actual cause</p>
+
+  <h3>Authentication &amp; permissions</h3>
+
+  <details>
+    <summary>Not authorized to perform sts:AssumeRoleWithWebIdentity</summary>
+    <p>The trust policy does not match the token GitHub sent. In order of likelihood:</p>
+    <ol>
+      <li>The <code>sub</code> uses the branch form but the job declares <code>environment:</code> — GitHub sends <code>…:environment:production</code> instead.</li>
+      <li>The owner or repo name is misspelled. It is case-sensitive.</li>
+      <li>The OIDC provider was never created in this account.</li>
+      <li><code>aud</code> is not exactly <code>sts.amazonaws.com</code>.</li>
+    </ol>
+    <p>
+      Add a temporary step printing <code>${{ github.repository }}</code> and compare character by
+      character. There is no message that tells you which of the four it is.
+    </p>
+  </details>
+
+  <details>
+    <summary>Credentials could not be loaded / no OIDC token available</summary>
+    <p>
+      The job is missing <code>permissions: id-token: write</code>. Remember that a job-level
+      <code>permissions:</code> block <em>replaces</em> the workflow default, so you must re-list
+      <code>contents: read</code> too.
+    </p>
+  </details>
+
+  <details>
+    <summary>kubectl: Unauthorized</summary>
+    <p>
+      <strong>No access entry for this principal.</strong> EKS recognises the AWS identity but has no
+      Kubernetes mapping for it. Fix with <code>create-access-entry</code> +
+      <code>associate-access-policy</code> — see phase 6.
+    </p>
+    <p>
+      Remember this can happen even to a role with <code>AdministratorAccess</code>. AWS permissions
+      and Kubernetes permissions are separate systems.
+    </p>
+  </details>
+
+  <details>
+    <summary>kubectl: Forbidden (cannot get pods in namespace …)</summary>
+    <p>
+      <strong>The entry exists but the policy is too narrow, or the scope does not cover what you
+      asked for.</strong> A policy scoped to <code>namespaces=demo</code> returns
+      <code>Forbidden</code> when you query <code>default</code>.
+    </p>
+    <p>
+      Fix by re-running <code>associate-access-policy</code> with a wider
+      <code>--access-scope</code>; re-running updates the scope rather than duplicating.
+    </p>
+    <p>
+      <strong>The distinction to memorise:</strong> <code>Unauthorized</code> = authentication, no
+      entry. <code>Forbidden</code> = authorization, entry but wrong policy.
+    </p>
+  </details>
+
+  <details>
+    <summary>kubectl: dial tcp 127.0.0.1:8080 connection refused</summary>
+    <p>
+      There is no kubeconfig. <code>localhost:8080</code> is kubectl's built-in fallback when it finds
+      no configuration at all. Run <code>aws eks update-kubeconfig</code> — and check you ran it as
+      <em>one</em> command, not two merged onto a single line by a lost newline.
+    </p>
+  </details>
+
+  <h3>Kind of works</h3>
+
+  <details>
+    <summary>The nodegroup sits in CREATING for 25+ minutes and then eksctl times out</summary>
+    <p>
+      eksctl's 25-minute wait is <strong>client-side only</strong>. When it gives up, AWS keeps
+      building. This is not a failure &mdash; it is your terminal giving up on watching.
+    </p>
+    <p>
+      The documented cause is nodes not joining within 15 minutes, which EKS reports as
+      <code>NodeCreationFailure</code>. Check the real state with:
+    </p>
+    <pre>aws eks describe-nodegroup --cluster-name $CLUSTER_NAME --region ap-south-1 \
+  --nodegroup-name default --query 'nodegroup.[status,health.issues]' --output json</pre>
+    <p>
+      The two common causes are a missing node-role permission (usually
+      <code>AmazonEKS_CNI_Policy</code>) and no outbound internet from the private subnets — the latter
+      happens if the NAT gateway or its route is missing.
+    </p>
+  </details>
+
+  <details>
+    <summary>I pressed Ctrl+C during eksctl — is it broken?</summary>
+    <p>
+      Probably not. <kbd>Ctrl</kbd>+<kbd>C</kbd> kills the local process; the CloudFormation stack keeps
+      building. Wait, then check:
+    </p>
+    <pre>aws cloudformation wait stack-create-complete \
+  --stack-name eksctl-$CLUSTER_NAME-cluster
+echo "exit=$?"      <span class="c"># silent while waiting — that is correct</span></pre>
+    <p>
+      If the cluster stack completed, do <strong>not</strong> re-run <code>eksctl create cluster</code>
+      — it will fail with "stack already exists". Instead run only the phase it never reached:
+      <code>eksctl create nodegroup …</code>, then <code>aws eks update-kubeconfig</code> (eksctl writes
+      the kubeconfig only at the very end).
+    </p>
+  </details>
+
+  <details>
+    <summary>The pod is stuck in ImagePullBackOff</summary>
+    <p>
+      Two causes. Either the image reference still literally says
+      <code>IMAGE_PLACEHOLDER</code> (the <code>sed</code> did not match — which is why the pipeline
+      has a <code>grep</code> guard), or the node role lacks permission to pull from ECR.
+    </p>
+    <pre>kubectl describe pod -n default -l app=frontend | tail -30</pre>
+  </details>
+
+  <details>
+    <summary>kubectl get pods returns "No resources found" after a successful deploy</summary>
+    <p>
+      Usually the namespace. The pipeline deploys to <code>K8S_NAMESPACE</code> from the workflow's
+      <code>env:</code> block. Check you are looking in the same one.
+    </p>
+  </details>
+
+  <h3>Load balancer</h3>
+
+  <details>
+    <summary>The Ingress ADDRESS stays empty forever, with no error anywhere</summary>
+    <p>
+      <strong>Subnet tags.</strong> This is the silent failure the whole design of phase 2 exists to
+      prevent. The controller discovers subnets by tag alone; no tag, no candidates, no error.
+    </p>
+    <p>You need <strong>two</strong> subnets tagged <code>kubernetes.io/role/elb=1</code> in <strong>two different AZs</strong>. One is not enough — an ALB refuses to be created in a single AZ.</p>
+    <p>Re-run the phase 2 verification query.</p>
+  </details>
+
+  <details>
+    <summary>Controller logs say couldn't auto-discover subnets</summary>
+    <p>
+      Phase 2 again — but check the cluster tag specifically. A
+      <code>kubernetes.io/cluster/&lt;name&gt;</code> tag naming a <em>different</em> cluster actively
+      <em>excludes</em> that subnet from discovery. If the name does not match
+      <code>--name</code> exactly, remove the tag rather than guessing.
+    </p>
+  </details>
+
+  <details>
+    <summary>Controller logs say AccessDenied or NoCredentialProviders</summary>
+    <p>
+      IRSA. The ServiceAccount annotation is missing, or the trust policy names the wrong namespace or
+      ServiceAccount. Re-run the phase 11c checkpoint — if it prints a blank line, that is your answer.
+    </p>
+    <pre>kubectl get sa aws-load-balancer-controller -n kube-system \
+  -o jsonpath='{.metadata.annotations.eks\.amazonaws\.com/role-arn}{"\n"}'</pre>
+  </details>
+
+  <details>
+    <summary>failed calling webhook … context deadline exceeded</summary>
+    <p>
+      The control plane cannot reach the controller's webhook on port <strong>9443</strong>. This is the
+      least guessable failure in the whole process. Allow it on the cluster security group:
+    </p>
+    <pre><span class="k">export</span> CLUSTER_SG=$(aws eks describe-cluster --name $CLUSTER_NAME --region ap-south-1 \
+  --query "cluster.resourcesVpcConfig.clusterSecurityGroupId" --output text)
+
+<span class="k">aws</span> ec2 authorize-security-group-ingress --region ap-south-1 \
+  --group-id $CLUSTER_SG --protocol tcp --port 9443 --source-group $CLUSTER_SG</pre>
+  </details>
+
+  <details>
+    <summary>The ALB exists but returns 503</summary>
+    <p>
+      No healthy targets. Either the health check path returns something other than 200, or the pods are
+      not ready. Check <strong>EC2 → Target Groups → Targets</strong> in the console — it names the
+      reason per target.
+    </p>
+  </details>
+
+  <details>
+    <summary>Ingress created, no ALB, and no errors anywhere</summary>
+    <p>
+      Two causes. Either a Service named in the rules does not exist (the controller resolves all of
+      them at once — one missing Service produces <em>nothing</em>), or
+      <code>ingressClassName: alb</code> is missing or misspelled.
+    </p>
+  </details>
+
+  <details>
+    <summary>curl returns 000 even though ADDRESS is populated</summary>
+    <p>
+      You did not wait twice. The address appears before the ALB serves anything — DNS still has to
+      propagate and the target has to pass its first health check. Give it another 1–2 minutes.
+    </p>
+    <p>
+      Use <code>curl -sS</code>, not <code>-s</code>. The lowercase <code>s</code> suppresses error
+      messages too, so all you see is <code>000</code>.
+    </p>
+  </details>
+
+  <h3>Teardown</h3>
+
+  <details>
+    <summary>terraform destroy fails on the subnets or VPC with DependencyViolation</summary>
+    <p>
+      The EKS security groups still exist. They were created by eksctl inside your VPC, and AWS refuses
+      to delete a subnet that something is still attached to.
+    </p>
+    <p>Two possibilities:</p>
+    <ol>
+      <li>Phase 13 step 4 has not finished. Wait, then re-run <code>terraform destroy</code> — it resumes where it stopped.</li>
+      <li><code>eksctl delete cluster</code> aborted before its cleanup phase. See the next entry.</li>
+    </ol>
+  </details>
+
+  <details>
+    <summary>eksctl delete cluster returns 404 "No cluster found" — but resources are left behind</summary>
+    <p>
+      This looks like success. The cluster <em>is</em> gone. But <strong>eksctl's cleanup phase never
+      ran</strong>, because it describes the cluster first and a 404 aborts the whole command before it
+      deletes CloudFormation stacks, IAM roles and security groups.
+    </p>
+    <p>
+      That is why the phase 13 checkpoint lists <em>four</em> commands, not one. Look for leftover
+      CloudFormation stacks named <code>eksctl-*</code> and delete them from the console.
+    </p>
+    <p>
+      <strong>Rule for next time:</strong> always delete a <em>healthy</em> cluster with eksctl. If the
+      cluster is already gone, expect manual cleanup.
+    </p>
+  </details>
+
+  <details>
+    <summary>Leftover security groups refuse to delete</summary>
+    <p>
+      They reference each other in a circle. AWS will not delete a security group while another one
+      still names it in a rule, and if A references B and B references A, neither can go first.
+    </p>
+    <pre><span class="c"># break the circle first</span>
+<span class="k">aws</span> ec2 revoke-security-group-ingress --group-id &lt;SG-A&gt; \
+  --ip-permissions '[{"IpProtocol":"-1","UserIdGroupPairs":[{"GroupId":"&lt;SG-B&gt;","UserId":"&lt;ACCOUNT_ID&gt;"}]}]'
+
+<span class="c"># now delete</span>
+<span class="k">aws</span> ec2 delete-security-group --group-id &lt;SG-A&gt;
+<span class="k">aws</span> ec2 delete-security-group --group-id &lt;SG-B&gt;</pre>
+  </details>
+
+  <details>
+    <summary>CloudFormation refuses to delete a stack</summary>
+    <p>
+      A stack in <code>CREATE_IN_PROGRESS</code> cannot be deleted. CloudFormation will not start an
+      operation while one is running, and EKS will not delete a node group that is still
+      <code>CREATING</code>.
+    </p>
+    <p>
+      <strong>Do not press "Delete stack" in the console while it is creating.</strong> It fails and
+      leaves you with <code>DELETE_FAILED</code> — a second stuck state. Wait for the operation to
+      settle (<code>ACTIVE</code>, <code>DEGRADED</code> or <code>CREATE_FAILED</code>), then delete.
+    </p>
+  </details>
+
+  <h3>Git and GitHub</h3>
+
+  <details>
+    <summary>git commit says "no changes added to commit" after git add .</summary>
+    <p>
+      You ran <code>git add .</code> from a subdirectory. In git, <code>.</code> means "this directory
+      and below" — it is relative to your working directory, not the repository root. Files one level up
+      were never staged.
+    </p>
+    <p>Run it from the repo root, or name the path explicitly.</p>
+  </details>
+
+  <details>
+    <summary>A .gitignore negation (!path/to/keep) has no effect</summary>
+    <p>
+      Git cannot re-include a file if a <em>parent directory</em> is excluded. Git never descends into
+      an ignored directory, so patterns for files inside it are never evaluated — no matter where they
+      appear.
+    </p>
+    <pre><span class="c"># this ignores the folder itself → the negation below is dead code</span>
+Progress/
+!Progress/notes.md
+
+<span class="c"># this ignores the folder's CONTENTS → the negation works</span>
+Progress/*
+!Progress/notes.md</pre>
+  </details>
+
+  <details>
+    <summary>The deploy job is skipped, always, with no error</summary>
+    <p>
+      Look at its <code>if:</code> condition. A
+      <code>github.ref == 'refs/heads/master'</code> check on a repository whose default branch is
+      <code>main</code> is never true, and a skipped job produces no failure — it just quietly does
+      nothing.
+    </p>
+  </details>
+
+  <details>
+    <summary>A pushed commit contains a 600 MB Terraform provider binary</summary>
+    <p>
+      GitHub rejects any file over 100 MB. Add the ignore rules <em>before</em> the first
+      <code>terraform init</code>:
+    </p>
+    <pre>Terraform/.terraform/
+Terraform/*.tfstate
+Terraform/*.tfstate.*
+Terraform/*.tfvars
+Terraform/tfplan
+Terraform/*.plan
+!Terraform/.terraform.lock.hcl      <span class="c"># keep the lock file — it pins provider versions</span></pre>
+    <p>
+      If it already happened: <code>git rm -r --cached Terraform/.terraform</code>, then amend the
+      commit.
+    </p>
+  </details>
+
+  <h3>SonarCloud</h3>
+
+  <details>
+    <summary>Not authorized or project not found</summary>
+    <p>
+      The properties file points at a project your token cannot write to — almost always a leftover from
+      a tutorial. <strong>The properties file overrides anything you set in the SonarCloud UI.</strong>
+    </p>
+    <p>
+      Fix <code>sonar.projectKey</code> and <code>sonar.organization</code>, and verify the
+      <code>SONAR_TOKEN</code> secret actually exists in GitHub. A missing secret produces the identical
+      message.
+    </p>
+  </details>
+
+  <details>
+    <summary>You are running CI analysis while Automatic Analysis is enabled</summary>
+    <p>
+      SonarCloud is analysing the repo itself <em>and</em> you are analysing it in CI. It refuses to
+      prevent duplicate analyses corrupting the project history.
+    </p>
+    <p>
+      <strong>Administration → Analysis Method → turn Automatic Analysis off.</strong> Keep CI analysis:
+      Automatic Analysis cannot produce code coverage, which is the whole reason you set up
+      <code>lcov</code>.
+    </p>
+  </details>
+
+  <details>
+    <summary>SonarQube Scan step is green but nothing appears in SonarCloud</summary>
+    <p>
+      Usually a branch mismatch — SonarCloud only tracks the default branch by default. Check the
+      project's Activity page and confirm the branch name matches. Also confirm
+      <code>sonar.qualitygate.wait</code> is <em>not</em> set if you want the job to finish quickly;
+      with it set, the scanner polls until the gate resolves.
+    </p>
+  </details>
+</section>
+
+<!-- ======================================================= GLOSSARY -->
+<section id="glossary">
+  <h2>Glossary</h2>
+  <p class="srcref">Every term used in this runbook, in one place</p>
+
+  <dl class="gloss">
+    <div><dt>Access entry</dt><dd>The EKS object that maps an IAM principal to a Kubernetes identity. Without one, an IAM role has no cluster access at all — even with AdministratorAccess.</dd></div>
+    <div><dt>Access policy (EKS)</dt><dd>A named set of Kubernetes permissions you attach to an access entry, optionally scoped to particular namespaces. Not the same thing as an IAM policy.</dd></div>
+    <div><dt>ALB</dt><dd>Application Load Balancer — a layer-7 load balancer. Created by the AWS Load Balancer Controller in response to an Ingress.</dd></div>
+    <div><dt>ARN</dt><dd>Amazon Resource Name — the unique identifier of any AWS resource. An identifier, not a credential.</dd></div>
+    <div><dt>aud (audience)</dt><dd>The token claim saying who it is for. Must be <code>sts.amazonaws.com</code> so a token issued for another service cannot be replayed at AWS.</dd></div>
+    <div><dt>Availability Zone</dt><dd>An isolated datacentre within a region. Your subnets span two of them; an ALB requires at least two.</dd></div>
+    <div><dt>CloudFormation</dt><dd>AWS's own infrastructure-as-code service. eksctl uses it internally, which is why eksctl-managed resources live in CFN stacks rather than any file you own.</dd></div>
+    <div><dt>ClusterIP</dt><dd>The default Service type — a virtual address that exists only inside the cluster network and is unreachable from outside.</dd></div>
+    <div><dt>ConfigMap</dt><dd>A Kubernetes object holding non-secret configuration, injected into pods as environment variables.</dd></div>
+    <div><dt>DependencyViolation</dt><dd>The error AWS returns when you try to delete something that another resource still references — most often a subnet that still has security groups or ENIs attached.</dd></div>
+    <div><dt>Deployment</dt><dd>The Kubernetes object that keeps N copies of a pod running and replaces them safely during an update.</dd></div>
+    <div><dt>EBS</dt><dd>Elastic Block Store — the disk behind an EC2 instance. Survives a stop, and is billed even while stopped.</dd></div>
+    <div><dt>ECR</dt><dd>Elastic Container Registry — the private image warehouse inside your AWS account.</dd></div>
+    <div><dt>EKS</dt><dd>Elastic Kubernetes Service — Kubernetes with the control plane operated by AWS.</dd></div>
+    <div><dt>eksctl</dt><dd>The official CLI for EKS. Creates a working cluster in one command, tracking everything in CloudFormation.</dd></div>
+    <div><dt>ENI</dt><dd>Elastic Network Interface — a virtual network card. The EKS control plane gets one per subnet; nodes get one each.</dd></div>
+    <div><dt>Environment (GitHub)</dt><dd>A named deployment target with its own secrets and optional approval rules. Declaring one changes the OIDC <code>sub</code> claim.</dd></div>
+    <div><dt>IAM</dt><dd>Identity and Access Management — AWS's permission system. Answers "what can you do in AWS?", never "who are you in Kubernetes?".</dd></div>
+    <div><dt>IAM role</dt><dd>An identity that can be assumed temporarily. Has two distinct policies: a trust policy (who may assume it) and permission policies (what it may do).</dd></div>
+    <div><dt>Ingress</dt><dd>The Kubernetes object that asks for a load balancer and defines routing rules. Deleting it is what deletes the ALB.</dd></div>
+    <div><dt>IRSA</dt><dd>IAM Roles for Service Accounts — the mechanism that lets a pod hold an AWS identity via a projected token, with no stored credentials.</dd></div>
+    <div><dt>kubeconfig</dt><dd>The file (<code>~/.kube/config</code>) telling kubectl which cluster to talk to and how to authenticate. Written by <code>aws eks update-kubeconfig</code>.</dd></div>
+    <div><dt>liveness probe</dt><dd>Periodic check answering "is this container alive?". Failure causes a restart.</dd></div>
+    <div><dt>Lockfile</dt><dd><code>package-lock.json</code> — the exact version of every dependency. <code>npm ci</code> installs from it and fails if it disagrees with package.json. This is what makes builds reproducible.</dd></div>
+    <div><dt>NAT gateway</dt><dd>Lets private subnets reach the internet outbound, with no inbound path. Bills hourly regardless of traffic.</dd></div>
+    <div><dt>Node</dt><dd>An EC2 instance registered as a Kubernetes worker. Cluster-scoped, so it has no namespace.</dd></div>
+    <div><dt>Node group</dt><dd>A managed set of nodes sharing an instance type and scaling configuration.</dd></div>
+    <div><dt>OIDC</dt><dd>OpenID Connect — the standard that lets one system prove its identity to another using a short-lived signed token instead of a shared password.</dd></div>
+    <div><dt>Pod</dt><dd>The smallest unit Kubernetes runs — one or more containers sharing an address and lifecycle.</dd></div>
+    <div><dt>readiness probe</dt><dd>Periodic check answering "can this pod serve traffic now?". Failure removes it from the Service but leaves it running. This is what makes zero-downtime rollouts possible.</dd></div>
+    <div><dt>Region</dt><dd>A geographic cluster of datacentres. Everything here is in <code>ap-south-1</code> (Mumbai). Resources in different regions cannot see each other.</dd></div>
+    <div><dt>Rollout</dt><dd>Kubernetes replacing pods one batch at a time when a Deployment changes. <code>kubectl rollout status</code> waits for it; <code>rollout undo</code> reverses it.</dd></div>
+    <div><dt>Service</dt><dd>A stable in-cluster address that load-balances across pods matching a label selector.</dd></div>
+    <div><dt>ServiceAccount</dt><dd>A Kubernetes identity for a pod. With the right annotation, it can be mapped to an IAM role — that is IRSA.</dd></div>
+    <div><dt>SPA fallback</dt><dd>Serving <code>index.html</code> for any unmatched path so client-side routes survive a page refresh. Also why an unimplemented <code>/api</code> returns HTML with HTTP 200.</dd></div>
+    <div><dt>STS</dt><dd>Security Token Service — issues the temporary credentials. <code>AssumeRoleWithWebIdentity</code> is the call OIDC uses.</dd></div>
+    <div><dt>sub (subject)</dt><dd>The token claim identifying which repo, and which branch or environment, the token came from. The most security-critical line in a trust policy.</dd></div>
+    <div><dt>Subnet</dt><dd>A range of IPs inside a VPC, tied to one Availability Zone. "Public" means its route table has a route to an Internet Gateway.</dd></div>
+    <div><dt>terraform.tfstate</dt><dd>Terraform's record of which real resources correspond to which blocks of code. Delete it and Terraform no longer knows it owns anything — it would build duplicates.</dd></div>
+    <div><dt>Trust policy</dt><dd>The rule on an IAM role stating who may assume it and under what conditions. Distinct from the permission policy.</dd></div>
+    <div><dt>VPC CNI</dt><dd>The plugin that gives each pod a real IP address from the subnet's CIDR range. Runs as the <code>aws-node</code> DaemonSet and needs <code>AmazonEKS_CNI_Policy</code>.</dd></div>
+    <div><dt>VPC</dt><dd>Virtual Private Cloud — your isolated network inside AWS. Everything here lives in one, created by Terraform.</dd></div>
+  </dl>
+</section>
+
+<!-- ======================================================= QUICK REF -->
+<section id="quick">
+  <h2>Quick reference</h2>
+  <p class="srcref">The commands you will reach for most</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Task</th><th>Command</th></tr></thead>
+      <tbody>
+        <tr><td>Build the VPC</td><td class="mono">cd Terraform &amp;&amp; terraform apply</td></tr>
+        <tr><td>Destroy the VPC</td><td class="mono">cd Terraform &amp;&amp; terraform destroy</td></tr>
+        <tr><td>Create the cluster</td><td class="mono">eksctl create cluster --name … --vpc-private-subnets=…</td></tr>
+        <tr><td>Delete the cluster</td><td class="mono">eksctl delete cluster --name … --wait</td></tr>
+        <tr><td>Point kubectl at it</td><td class="mono">aws eks update-kubeconfig --region ap-south-1 --name …</td></tr>
+        <tr><td>See all pods everywhere</td><td class="mono">kubectl get pods -A -o wide</td></tr>
+        <tr><td>View the app locally</td><td class="mono">kubectl port-forward -n default svc/frontend 8080:80</td></tr>
+        <tr><td>Check node group health</td><td class="mono">aws eks describe-nodegroup … --query 'nodegroup.health'</td></tr>
+        <tr><td>See who can access the cluster</td><td class="mono">aws eks list-access-entries --cluster-name …</td></tr>
+        <tr><td>Watch eksctl's stacks</td><td class="mono">aws cloudformation describe-stacks --query "Stacks[?contains(StackName,'eksctl')]"</td></tr>
+        <tr><td>Find load balancers</td><td class="mono">aws elbv2 describe-load-balancers --query "LoadBalancers[].LoadBalancerName"</td></tr>
+        <tr><td>Force a pod restart</td><td class="mono">kubectl rollout restart deployment/frontend -n default</td></tr>
+        <tr><td>Undo a bad deploy</td><td class="mono">kubectl rollout undo deployment/frontend -n default</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>The four ideas that explain everything else</h3>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Idea</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Two tools, two states</strong></td>
+          <td>Terraform's memory is a file on your laptop; eksctl's is CloudFormation in AWS. Neither can clean up the other's work, which is why teardown has a fixed order.</td>
+        </tr>
+        <tr>
+          <td><strong>IAM ≠ Kubernetes RBAC</strong></td>
+          <td>AWS permissions and cluster permissions are separate systems. An access entry is the bridge, and without one even an administrator has no cluster access.</td>
+        </tr>
+        <tr>
+          <td><strong>Tags are the interface</strong></td>
+          <td>The load balancer controller discovers subnets by tag alone. No tag, no load balancer, and <em>no error message</em>. Nearly every silent failure traces back to this.</td>
+        </tr>
+        <tr>
+          <td><strong>Your terminal is a window, not a switch</strong></td>
+          <td>AWS is a server-side state machine. Ctrl+C, a client timeout, and a console button do not stop it. When something looks stuck, run a <code>describe</code> — never a cancel.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+  </main>
+</div>
+
+<footer>
+  Zero to Live &mdash; the companion runbook to <em>The Keyless Pipeline</em>.<br>
+  Region ap-south-1 &middot; EKS 1.36 &middot; Terraform + eksctl + GitHub Actions + ALB Ingress.<br>
+  Verify the teardown. Every time.
+</footer>
+
+</body>
+</html>
