@@ -10,6 +10,7 @@ coverage/
 *.log
 
 Progress/
+!Progress/rebuild-and-teardown.md
 # Terraform - never commit provider binaries or state
 Terraform/.terraform/
 Terraform/*.tfstate
